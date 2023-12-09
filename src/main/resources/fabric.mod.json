@@ -1,0 +1,41 @@
+{
+  "schemaVersion": 1,
+  "id": "factorytools",
+  "version": "${version}",
+
+  "name": "FactoryTools",
+  "description": "Generified bits of code originally created for PolyFactory, now usable for other mods!",
+  "authors": [
+    "Patbox"
+  ],
+  "contact": {
+    "homepage": "https://pb4.eu",
+    "sources": "https://github.com/Patbox/FactoryTools"
+  },
+
+  "license": "LGPLv3",
+  "icon": "assets/factorytools/textures/icon.png",
+  "environment": "*",
+  "entrypoints": {
+    "main": [
+      "eu.pb4.factorytools.impl.ModInit"
+    ]
+  },
+  "mixins": [
+    "factorytools.mixins.json"
+  ],
+
+  "depends": {
+    "fabricloader": ">=0.15.0",
+    "fabric-api": "*",
+    "minecraft": ">=1.20.3-",
+    "polymer-core": ">=0.7.0",
+    "polymer-resource-pack": ">=0.7.0",
+    "polymer-virtual-entity": ">=0.7.0",
+    "java": ">=17"
+  },
+  "breaks": {
+    "banner": "*",
+    "cardboard": "*"
+  }
+}
