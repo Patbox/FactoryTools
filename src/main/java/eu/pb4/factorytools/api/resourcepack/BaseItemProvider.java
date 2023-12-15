@@ -9,22 +9,29 @@ import net.minecraft.util.Identifier;
 public class BaseItemProvider {
     private static final Item[] ITEMS = new Item[] {
             Items.PAPER,
-            Items.IRON_NUGGET,
-            Items.GOLD_NUGGET,
-            Items.IRON_INGOT,
-            Items.GOLD_INGOT,
+            Items.FEATHER,
+            Items.POPPED_CHORUS_FRUIT,
+            Items.BRICK,
+            Items.NETHER_BRICK,
+            Items.FLINT,
             Items.CLAY_BALL,
             Items.SCUTE,
             Items.LEATHER,
             Items.RABBIT_HIDE,
             Items.RABBIT_FOOT,
-            Items.ECHO_SHARD,
             Items.PHANTOM_MEMBRANE,
             Items.GUNPOWDER,
-            Items.GLOWSTONE_DUST,
+            Items.SUGAR,
             Items.GHAST_TEAR
     };
 
+    private static final Item[] METALIC_ITEMS = new Item[] {
+            Items.IRON_NUGGET,
+            Items.GOLD_NUGGET,
+            Items.IRON_INGOT,
+            Items.GOLD_INGOT,
+            Items.COPPER_INGOT
+    };
     private static int currentItem = 0;
 
     private static final Item[] MODELS = new Item[] {
@@ -43,7 +50,23 @@ public class BaseItemProvider {
             Items.BROWN_WOOL,
             Items.GREEN_WOOL,
             Items.RED_WOOL,
-            Items.BLACK_WOOL
+            Items.BLACK_WOOL,
+            Items.WHITE_TERRACOTTA,
+            Items.ORANGE_TERRACOTTA,
+            Items.MAGENTA_TERRACOTTA,
+            Items.LIGHT_BLUE_TERRACOTTA,
+            Items.YELLOW_TERRACOTTA,
+            Items.LIME_TERRACOTTA,
+            Items.PINK_TERRACOTTA,
+            Items.GRAY_TERRACOTTA,
+            Items.LIGHT_GRAY_TERRACOTTA,
+            Items.CYAN_TERRACOTTA,
+            Items.PURPLE_TERRACOTTA,
+            Items.BLUE_TERRACOTTA,
+            Items.BROWN_TERRACOTTA,
+            Items.GREEN_TERRACOTTA,
+            Items.RED_TERRACOTTA,
+            Items.BLACK_TERRACOTTA
     };
 
     private static int currentModels = 0;
@@ -51,6 +74,13 @@ public class BaseItemProvider {
 
     public static Item requestItem() {
         return ITEMS[currentItem++ % ITEMS.length];
+    }
+
+    /**
+     * Use for shiny items when used with iris shaders or something
+     */
+    public static Item requestMetalicItem() {
+        return METALIC_ITEMS[currentItem++ % METALIC_ITEMS.length];
     }
 
     public static Item requestModel() {
