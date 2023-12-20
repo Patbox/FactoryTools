@@ -70,6 +70,7 @@ public class BaseItemProvider {
     };
 
     private static int currentModels = 0;
+    private static int currentMetallicItem = 0;
 
 
     public static Item requestItem() {
@@ -79,8 +80,8 @@ public class BaseItemProvider {
     /**
      * Use for shiny items when used with iris shaders or something
      */
-    public static Item requestMetalicItem() {
-        return METALIC_ITEMS[currentItem++ % METALIC_ITEMS.length];
+    public static Item requestMetallicItem() {
+        return METALIC_ITEMS[currentMetallicItem++ % METALIC_ITEMS.length];
     }
 
     public static Item requestModel() {
