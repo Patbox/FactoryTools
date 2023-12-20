@@ -30,6 +30,7 @@ public class VirtualDestroyStage extends ElementHolder {
         this.addElement(this.main);
     }
 
+    @SuppressWarnings("SameReturnValue")
     public static boolean updateState(ServerPlayerEntity player, BlockPos pos, BlockState state, int i) {
         var self = ((ServerPlayNetExtF) player.networkHandler).factorytools$getVirtualDestroyStage();
 
