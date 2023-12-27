@@ -27,6 +27,17 @@ public record ExtendedCraftingResultCodec(Codec<ItemStack> vanillaCodec) impleme
 
     @Override
     public <T> DataResult<T> encode(ItemStack input, DynamicOps<T> ops, T prefix) {
-        return this.vanillaCodec.encode(input, ops, prefix);
+        var result = this.vanillaCodec.encode(input, ops, prefix);
+        if (result.result().isPresent() && input.hasNbt()) {
+            prefix = result.result().get();
+
+            var nbt = NbtCompound.CODEC.encodeStart(ops, input.getNbt());
+
+            if (nbt.result().isPresent()) {
+                return ops.mergeToMap(prefix, ops.createString("factorytools:nbt"), nbt.result().get());
+            }
+        }
+
+        return result;
     }
 }
