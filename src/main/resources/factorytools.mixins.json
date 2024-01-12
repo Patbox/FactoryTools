@@ -8,6 +8,7 @@
     "ItemPredicateBuilderMixin",
     "ItemPredicateMixin",
     "ItemUsageContextAccessor",
+    "PistonHandlerMixin",
     "RedstoneWireBlockMixin",
     "WorldChunkMixin",
     "music_disc.JukeboxBlockEntityMixin",

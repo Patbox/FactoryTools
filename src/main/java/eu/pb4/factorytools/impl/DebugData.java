@@ -7,7 +7,7 @@ import net.minecraft.util.Util;
 import java.util.Collection;
 import java.util.Map;
 import java.util.function.BiConsumer;
-
+@Deprecated
 public class DebugData {
     public static boolean enabled = false;
     private static int tick;

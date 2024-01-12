@@ -93,6 +93,7 @@ public class LodItemDisplayElement extends ItemDisplayElement {
         element.setDisplaySize(2, 2);
         element.setViewRange(0.8f);
         element.setModelTransformation(ModelTransformationMode.FIXED);
+        element.setTeleportDuration(1);
         element.setInvisible(true);
         return element;
     }
@@ -121,6 +122,11 @@ public class LodItemDisplayElement extends ItemDisplayElement {
             @Override
             public boolean isDirty() {
                 return nearTracker.isDirty();
+            }
+
+            @Override
+            public boolean isDirty(TrackedData<?> key) {
+                return nearTracker.isDirty(key);
             }
 
             @Override
@@ -193,6 +199,6 @@ public class LodItemDisplayElement extends ItemDisplayElement {
     }
 
     protected double getSquaredDistance(ServerPlayNetworkHandler player) {
-        return ((BaseModel) Objects.requireNonNull(this.getHolder())).getSquaredDistance(player);
+        return (Objects.requireNonNull(this.getHolder())).getPos().squaredDistanceTo(player.player.getPos());
     }
 }

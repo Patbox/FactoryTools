@@ -2,17 +2,20 @@ package eu.pb4.factorytools.api.virtualentity;
 
 import eu.pb4.factorytools.impl.DebugData;
 import eu.pb4.polymer.virtualentity.api.ElementHolder;
-import eu.pb4.polymer.virtualentity.api.attachment.BlockBoundAttachment;
+import eu.pb4.polymer.virtualentity.api.attachment.BlockAwareAttachment;
+import net.minecraft.block.BlockState;
+import net.minecraft.block.Blocks;
 import net.minecraft.network.listener.ClientPlayPacketListener;
 import net.minecraft.network.packet.Packet;
 import net.minecraft.server.network.ServerPlayNetworkHandler;
+import net.minecraft.util.math.BlockPos;
+import org.jetbrains.annotations.Nullable;
 import org.joml.Matrix4f;
 
 /**
- * Use {@link BlockModel} instead
+ * You should expect this element to move with pistones and falling blocks!
  */
-@Deprecated
-public class BaseModel extends ElementHolder {
+public class BlockModel extends ElementHolder {
     private static int startTick = 0;
     private int updateTick = (startTick++) % 20;
 
@@ -29,6 +32,7 @@ public class BaseModel extends ElementHolder {
 
     @Override
     public void tick() {
+        mat.identity();
         super.tick();
         this.updateTick++;
     }
@@ -39,11 +43,29 @@ public class BaseModel extends ElementHolder {
         DebugData.addPacketCall(this, packet);
     }
 
-    protected double getSquaredDistance(ServerPlayNetworkHandler player) {
+    protected double squaredDistance(ServerPlayNetworkHandler player) {
         return this.getPos().squaredDistanceTo(player.player.getPos());
     }
 
-    protected BlockBoundAttachment blockBound() {
-        return BlockBoundAttachment.get(this);
+    @Nullable
+    protected BlockAwareAttachment blockAware() {
+        return this.getAttachment() instanceof BlockAwareAttachment blockAwareAttachment ? blockAwareAttachment : null;
     }
+
+    protected BlockState blockState() {
+        var x = blockAware();
+        return x != null ? x.getBlockState() : Blocks.AIR.getDefaultState();
+    }
+
+    protected BlockPos blockPos() {
+        var x = blockAware();
+        return x != null ? x.getBlockPos() : BlockPos.ORIGIN;
+    }
+
+    protected boolean inWorld() {
+        var x = blockAware();
+        return x != null && x.isPartOfTheWorld();
+    }
+
+
 }
