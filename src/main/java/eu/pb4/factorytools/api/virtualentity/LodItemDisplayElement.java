@@ -46,7 +46,13 @@ public class LodItemDisplayElement extends ItemDisplayElement {
     }
 
     public static ItemStack getModel(Item model) {
-        var stack = MODEL_MAP.get(model);
+        ItemStack stack;
+        while (true) {
+            try {
+                stack = MODEL_MAP.get(model);
+                break;
+            } catch (Throwable ignore) {}
+        }
 
         if (stack == null) {
             if (model instanceof AutoModeledPolymerItem simpleModeledPolymerItem) {
@@ -55,7 +61,9 @@ public class LodItemDisplayElement extends ItemDisplayElement {
             } else {
                 stack = new ItemStack(model);
             }
-            MODEL_MAP.put(model, stack);
+            synchronized (MODEL_MAP) {
+                MODEL_MAP.put(model, stack);
+            }
         }
         return stack;
     }

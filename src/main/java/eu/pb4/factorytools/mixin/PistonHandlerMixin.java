@@ -64,5 +64,6 @@ public class PistonHandlerMixin {
         }
 
         return original.call(state, adjacentState);
-    }}
+    }
+}
 

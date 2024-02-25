@@ -4,6 +4,7 @@ import eu.pb4.factorytools.api.advancement.FactoryAdvancementCriteria;
 import eu.pb4.factorytools.api.block.AttackableBlock;
 import eu.pb4.factorytools.api.item.RegistryCallbackItem;
 import eu.pb4.factorytools.api.util.VirtualDestroyStage;
+import eu.pb4.factorytools.api.virtualentity.LodItemDisplayElement;
 import eu.pb4.polymer.core.api.block.PolymerBlockUtils;
 import eu.pb4.polymer.resourcepack.api.PolymerResourcePackUtils;
 import net.fabricmc.api.ModInitializer;
@@ -43,11 +44,13 @@ public class ModInit implements ModInitializer {
         for (var item : Registries.ITEM) {
             if (item instanceof RegistryCallbackItem modeledPolymerItem) {
                 modeledPolymerItem.onRegistered(Registries.ITEM.getId(item));
+                LodItemDisplayElement.getModel(item);
             }
         }
         RegistryEntryAddedCallback.event(Registries.ITEM).register((rawId, id, item) -> {
             if (item instanceof RegistryCallbackItem modeledPolymerItem) {
                 modeledPolymerItem.onRegistered(id);
+                LodItemDisplayElement.getModel(item);
             }
         });
 
