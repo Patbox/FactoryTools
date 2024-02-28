@@ -33,12 +33,6 @@ public class BaseModel extends ElementHolder {
         this.updateTick++;
     }
 
-    @Override
-    public void sendPacket(Packet<ClientPlayPacketListener> packet) {
-        super.sendPacket(packet);
-        DebugData.addPacketCall(this, packet);
-    }
-
     protected double getSquaredDistance(ServerPlayNetworkHandler player) {
         return this.getPos().squaredDistanceTo(player.player.getPos());
     }

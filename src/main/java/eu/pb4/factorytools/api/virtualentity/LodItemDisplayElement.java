@@ -2,10 +2,14 @@ package eu.pb4.factorytools.api.virtualentity;
 
 import eu.pb4.factorytools.api.item.AutoModeledPolymerItem;
 import eu.pb4.factorytools.impl.DebugData;
+import eu.pb4.polymer.core.impl.PolymerImplUtils;
 import eu.pb4.polymer.virtualentity.api.elements.ItemDisplayElement;
 import eu.pb4.polymer.virtualentity.api.tracker.DataTrackerLike;
 import eu.pb4.polymer.virtualentity.api.tracker.DisplayTrackedData;
 import eu.pb4.polymer.virtualentity.api.tracker.SimpleDataTracker;
+import it.unimi.dsi.fastutil.Hash;
+import it.unimi.dsi.fastutil.objects.ObjectOpenCustomHashSet;
+import it.unimi.dsi.fastutil.objects.ObjectOpenHashSet;
 import it.unimi.dsi.fastutil.objects.Reference2ObjectOpenHashMap;
 import net.minecraft.client.render.model.json.ModelTransformationMode;
 import net.minecraft.entity.data.DataTracker;
@@ -18,16 +22,26 @@ import net.minecraft.network.packet.s2c.play.EntityTrackerUpdateS2CPacket;
 import net.minecraft.server.network.ServerPlayNetworkHandler;
 import org.jetbrains.annotations.Nullable;
 
-import java.util.List;
-import java.util.Map;
-import java.util.Objects;
+import javax.sound.midi.Track;
+import java.util.*;
 
 public class LodItemDisplayElement extends ItemDisplayElement {
-    private static final Map<Item, ItemStack> MODEL_MAP = new Reference2ObjectOpenHashMap<>();
+    protected static final Set<TrackedData<?>> DEFAULT_LOD = Set.of(
+            DisplayTrackedData.START_INTERPOLATION,
+            DisplayTrackedData.INTERPOLATION_DURATION,
+            DisplayTrackedData.TRANSLATION,
+            DisplayTrackedData.SCALE,
+            DisplayTrackedData.LEFT_ROTATION,
+            DisplayTrackedData.RIGHT_ROTATION
+    );
     public static boolean isEnabled = true;
     public static boolean isDisabled = false;
+    // MovingElementTrackers
     public final DataTrackerLike nearTracker = new SimpleDataTracker(this.getEntityType());
     public final DataTrackerLike mediumTracker = new SimpleDataTracker(this.getEntityType());
+    public final DataTrackerLike mainTracker = new SimpleDataTracker(this.getEntityType());
+
+    protected Set<TrackedData<?>> lodTracked = DEFAULT_LOD;
     private int updateTick = 0;
     protected double nearDistanceSquared = 50 * 50;
     protected float farDistanceSquared = 90 * 90;
@@ -45,27 +59,9 @@ public class LodItemDisplayElement extends ItemDisplayElement {
         return createSimple(getModel(model));
     }
 
+    @Deprecated
     public static ItemStack getModel(Item model) {
-        ItemStack stack;
-        while (true) {
-            try {
-                stack = MODEL_MAP.get(model);
-                break;
-            } catch (Throwable ignore) {}
-        }
-
-        if (stack == null) {
-            if (model instanceof AutoModeledPolymerItem simpleModeledPolymerItem) {
-                stack = new ItemStack(simpleModeledPolymerItem.getPolymerItem());
-                stack.getOrCreateNbt().putInt("CustomModelData", simpleModeledPolymerItem.getPolymerCustomModelData());
-            } else {
-                stack = new ItemStack(model);
-            }
-            synchronized (MODEL_MAP) {
-                MODEL_MAP.put(model, stack);
-            }
-        }
-        return stack;
+        return ItemDisplayElementUtil.getModel(model);
     }
 
     public static LodItemDisplayElement createSimple(ItemStack model) {
@@ -106,19 +102,30 @@ public class LodItemDisplayElement extends ItemDisplayElement {
         return element;
     }
 
+    public void addLodData(TrackedData<?> data) {
+        if (this.lodTracked == DEFAULT_LOD) {
+            this.lodTracked = new HashSet<>(this.lodTracked);
+        }
+        this.lodTracked.add(data);
+    }
+
     @Override
     protected DataTrackerLike createDataTracker() {
         return new DataTrackerLike() {
             @Override
             public <T> @Nullable T get(TrackedData<T> data) {
-                return nearTracker.get(data);
+                return lodTracked.contains(data) ? nearTracker.get(data) : mainTracker.get(data);
             }
 
             @Override
             public <T> void set(TrackedData<T> key, T value, boolean forceDirty) {
-                nearTracker.set(key, value, forceDirty);
-                if (key != DisplayTrackedData.START_INTERPOLATION) {
-                    mediumTracker.set(key, value, forceDirty);
+                if (lodTracked.contains(key)) {
+                    nearTracker.set(key, value, forceDirty);
+                    if (key != DisplayTrackedData.START_INTERPOLATION) {
+                        mediumTracker.set(key, value, forceDirty);
+                    }
+                } else {
+                    mainTracker.set(key, value, forceDirty);
                 }
             }
 
@@ -129,48 +136,59 @@ public class LodItemDisplayElement extends ItemDisplayElement {
 
             @Override
             public boolean isDirty() {
-                return nearTracker.isDirty();
+                return nearTracker.isDirty() || mainTracker.isDirty();
             }
 
             @Override
             public boolean isDirty(TrackedData<?> key) {
-                return nearTracker.isDirty(key);
+                return nearTracker.isDirty(key) || mainTracker.isDirty(key);
             }
 
             @Override
             public @Nullable List<DataTracker.SerializedEntry<?>> getDirtyEntries() {
-                return nearTracker.getDirtyEntries();
+                return mainTracker.getDirtyEntries();
             }
 
             @Override
             public @Nullable List<DataTracker.SerializedEntry<?>> getChangedEntries() {
-                return nearTracker.getChangedEntries();
+                var x = new ArrayList<DataTracker.SerializedEntry<?>>();
+
+                var a = nearTracker.getChangedEntries();
+                if (a != null) {
+                    x.addAll(a);
+                }
+
+                var b = mainTracker.getChangedEntries();
+                if (a != null) {
+                    x.addAll(b);
+                }
+
+                return x.isEmpty() ? null : x;
             }
 
             @Override
             public boolean isEmpty() {
-                return nearTracker.isEmpty();
+                return nearTracker.isEmpty() || mainTracker.isEmpty();
             }
         };
     }
 
     @Override
     protected void sendTrackerUpdates() {
-        Packet<ClientPlayPacketListener> nearPacket = null;
         if (isDisabled) {
             if (this.nearTracker.isDirty()) {
-                nearPacket = new EntityTrackerUpdateS2CPacket(this.getEntityId(), this.nearTracker.getDirtyEntries());
-            } else {
-                return;
+                this.getHolder().sendPacket(new EntityTrackerUpdateS2CPacket(this.getEntityId(), this.nearTracker.getDirtyEntries()));
             }
-
-            for (var player : this.getHolder().getWatchingPlayers()) {
-                player.sendPacket(nearPacket);
+            if (this.mainTracker.isDirty()) {
+                this.getHolder().sendPacket(new EntityTrackerUpdateS2CPacket(this.getEntityId(), this.mainTracker.getDirtyEntries()));
             }
-
-            DebugData.addPacketCall(this.getHolder(), nearPacket);
         } else {
+            Packet<ClientPlayPacketListener> nearPacket = null;
             Packet<ClientPlayPacketListener> mediumPacket = null;
+            if (this.mainTracker.isDirty()) {
+                this.getHolder().sendPacket(new EntityTrackerUpdateS2CPacket(this.getEntityId(), this.mainTracker.getDirtyEntries()));
+            }
+
             if (this.nearTracker.isDirty()) {
                 nearPacket = new EntityTrackerUpdateS2CPacket(this.getEntityId(), this.nearTracker.getDirtyEntries());
             }
@@ -183,25 +201,17 @@ public class LodItemDisplayElement extends ItemDisplayElement {
                 return;
             }
 
-            boolean sendOnce = false;
-
             for (var player : this.getHolder().getWatchingPlayers()) {
                 var d = this.getSquaredDistance(player);
                 if (d < this.nearDistanceSquared) {
                     if (nearPacket != null) {
                         player.sendPacket(nearPacket);
-                        sendOnce = true;
                     }
                 } else if (d < this.farDistanceSquared) {
                     if (mediumPacket != null) {
                         player.sendPacket(mediumPacket);
-                        sendOnce = true;
                     }
                 }
-            }
-
-            if (sendOnce) {
-                DebugData.addPacketCall(this.getHolder(), nearPacket != null ? nearPacket : mediumPacket);
             }
         }
     }

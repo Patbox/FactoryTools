@@ -37,12 +37,6 @@ public class BlockModel extends ElementHolder {
         this.updateTick++;
     }
 
-    @Override
-    public void sendPacket(Packet<ClientPlayPacketListener> packet) {
-        super.sendPacket(packet);
-        DebugData.addPacketCall(this, packet);
-    }
-
     protected double squaredDistance(ServerPlayNetworkHandler player) {
         return this.getPos().squaredDistanceTo(player.player.getPos());
     }
