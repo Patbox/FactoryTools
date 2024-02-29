@@ -159,7 +159,7 @@ public class LodItemDisplayElement extends ItemDisplayElement {
                 }
 
                 var b = mainTracker.getChangedEntries();
-                if (a != null) {
+                if (b != null) {
                     x.addAll(b);
                 }
 
