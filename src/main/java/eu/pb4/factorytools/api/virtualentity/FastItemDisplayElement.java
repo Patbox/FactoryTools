@@ -55,6 +55,7 @@ public class FastItemDisplayElement extends LodItemDisplayElement {
             var d = this.getSquaredDistance(player.networkHandler);
             if (d > this.fastItemDistance) {
                 packetConsumer.accept(this.fastPacket);
+                this.fastPlayers.add(player.networkHandler);
             }
         }
     }

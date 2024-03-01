@@ -1,12 +1,11 @@
 package eu.pb4.factorytools.api.virtualentity;
 
-import eu.pb4.factorytools.impl.DebugData;
+import eu.pb4.factorytools.api.util.ThreadedMatrix4f;
+import eu.pb4.factorytools.impl.CompatStatus;
 import eu.pb4.polymer.virtualentity.api.ElementHolder;
 import eu.pb4.polymer.virtualentity.api.attachment.BlockAwareAttachment;
 import net.minecraft.block.BlockState;
 import net.minecraft.block.Blocks;
-import net.minecraft.network.listener.ClientPlayPacketListener;
-import net.minecraft.network.packet.Packet;
 import net.minecraft.server.network.ServerPlayNetworkHandler;
 import net.minecraft.util.math.BlockPos;
 import org.jetbrains.annotations.Nullable;
@@ -19,8 +18,18 @@ public class BlockModel extends ElementHolder {
     private static int startTick = 0;
     private int updateTick = (startTick++) % 20;
 
-    // Shared matrix, no reason to create a new one every time. It gets reset to identity anyway
-    protected static final Matrix4f mat = new Matrix4f();
+    /**
+     * Use {@code var mat = mat()} instead
+     */
+    @Deprecated
+    protected static final Matrix4f mat = CompatStatus.C2ME ? new ThreadedMatrix4f() : new Matrix4f();
+
+    public static Matrix4f mat() {
+        if (CompatStatus.C2ME) {
+            return ((ThreadedMatrix4f) mat).getMat().identity();
+        }
+        return mat.identity();
+    }
 
     public final int getTick() {
         return this.updateTick;

@@ -1,5 +1,7 @@
 package eu.pb4.factorytools.api.virtualentity;
 
+import eu.pb4.factorytools.api.util.ThreadedMatrix4f;
+import eu.pb4.factorytools.impl.CompatStatus;
 import eu.pb4.factorytools.impl.DebugData;
 import eu.pb4.polymer.virtualentity.api.ElementHolder;
 import eu.pb4.polymer.virtualentity.api.attachment.BlockBoundAttachment;
@@ -17,7 +19,7 @@ public class BaseModel extends ElementHolder {
     private int updateTick = (startTick++) % 20;
 
     // Shared matrix, no reason to create a new one every time. It gets reset to identity anyway
-    protected static final Matrix4f mat = new Matrix4f();
+    protected static final Matrix4f mat = CompatStatus.C2ME ? new ThreadedMatrix4f() : new Matrix4f();
 
     public final int getTick() {
         return this.updateTick;
