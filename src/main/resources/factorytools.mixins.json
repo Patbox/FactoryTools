@@ -11,6 +11,7 @@
     "PistonHandlerMixin",
     "RedstoneWireBlockMixin",
     "WorldChunkMixin",
+    "compat.htm_LockableBlockEntityMixin",
     "music_disc.JukeboxBlockEntityMixin",
     "music_disc.PlaySoundFromEntityS2CPacketAccessor",
     "player.BlockItemMixin",

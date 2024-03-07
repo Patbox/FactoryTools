@@ -24,9 +24,15 @@ public abstract class LockableBlockEntity extends BlockEntity {
     }
 
     public static boolean checkUnlocked(PlayerEntity player, ContainerLock lock, Text containerName) {
+        return checkUnlocked(player, lock, containerName, true);
+    }
+
+    public static boolean checkUnlocked(PlayerEntity player, ContainerLock lock, Text containerName, boolean display) {
         if (!player.isSpectator() && !lock.canOpen(player.getMainHandStack())) {
-            player.sendMessage(Text.translatable("container.isLocked", containerName), true);
-            player.playSound(SoundEvents.BLOCK_CHEST_LOCKED, SoundCategory.BLOCKS, 1.0F, 1.0F);
+            if (display) {
+                player.sendMessage(Text.translatable("container.isLocked", containerName), true);
+                player.playSound(SoundEvents.BLOCK_CHEST_LOCKED, SoundCategory.BLOCKS, 1.0F, 1.0F);
+            }
             return false;
         } else {
             return true;
@@ -72,15 +78,28 @@ public abstract class LockableBlockEntity extends BlockEntity {
         this.customName = customName;
     }
 
+    public ContainerLock getContainerLock() {
+        return this.lock;
+    }
+
+    public void getContainerLock(ContainerLock lock) {
+        this.lock = lock;
+        this.markDirty();
+    }
+
     protected Text getContainerName() {
         return this.getCachedState().getBlock().getName();
     }
 
     public boolean checkUnlocked(PlayerEntity player) {
-        return checkUnlocked(player, this.lock, this.getDisplayName()) && checkUnlockedMixin();
+        return checkUnlocked(player, true);
     }
 
-    private boolean checkUnlockedMixin() {
+    public boolean checkUnlocked(PlayerEntity player, boolean display) {
+        return checkUnlocked(player, this.lock, this.getDisplayName(), display) && checkUnlockedMixin(player, display);
+    }
+
+    private boolean checkUnlockedMixin(PlayerEntity player, boolean display) {
         return true;
     }
 

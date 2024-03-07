@@ -8,10 +8,12 @@ import net.minecraft.nbt.NbtCompound;
 import net.minecraft.server.network.ServerPlayerEntity;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Overwrite;
+import org.spongepowered.asm.mixin.Unique;
 
 @SuppressWarnings("OverwriteAuthorRequired")
 @Mixin(LockableBlockEntity.class)
 public abstract class htm_LockableBlockEntityMixin implements LockableObject {
+    @Unique
     public HTMContainerLock htmContainerLock = new HTMContainerLock();
 
     @Overwrite
@@ -26,8 +28,16 @@ public abstract class htm_LockableBlockEntityMixin implements LockableObject {
 
 
     @Overwrite
-    private boolean checkUnlockedMixin(PlayerEntity player) {
-        return player instanceof ServerPlayerEntity serverPlayer && htmContainerLock.canOpen(serverPlayer);
+    private boolean checkUnlockedMixin(PlayerEntity player, boolean display) {
+        return player instanceof ServerPlayerEntity serverPlayer
+                && (display ? htmContainerLock.canOpen(serverPlayer) : canOpen(serverPlayer));
+    }
+
+    @Unique
+    private boolean canOpen(ServerPlayerEntity player) {
+        if (htmContainerLock.getType() == null) return true;
+        if (htmContainerLock.getType().canOpen(player, htmContainerLock)) return true;
+        return htmContainerLock.isOwner(player);
     }
 
     @Override
