@@ -99,8 +99,12 @@ public abstract class LockableBlockEntity extends BlockEntity {
         return checkUnlocked(player, this.lock, this.getDisplayName(), display) && checkUnlockedMixin(player, display);
     }
 
-    private boolean checkUnlockedMixin(PlayerEntity player, boolean display) {
+    protected boolean checkUnlockedMixin(PlayerEntity player, boolean display) {
         return true;
+    }
+
+    protected boolean hasCheckUnlockedMixin() {
+        return false;
     }
 
     @Nullable

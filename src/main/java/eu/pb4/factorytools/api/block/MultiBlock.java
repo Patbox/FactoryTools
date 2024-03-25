@@ -137,7 +137,7 @@ public class MultiBlock extends Block implements PolymerBlock {
 
         for (int x = 0; x <= maxX; x++) {
             for (int y = 0; y <= maxY; y++) {
-                for (int z = 0; z <= maxX; z++) {
+                for (int z = 0; z <= maxZ; z++) {
                     if (!this.isValid(state, x, y, z)) {
                         continue;
                     }

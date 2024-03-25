@@ -28,9 +28,14 @@ public abstract class htm_LockableBlockEntityMixin implements LockableObject {
 
 
     @Overwrite
-    private boolean checkUnlockedMixin(PlayerEntity player, boolean display) {
+    protected boolean checkUnlockedMixin(PlayerEntity player, boolean display) {
         return player instanceof ServerPlayerEntity serverPlayer
                 && (display ? htmContainerLock.canOpen(serverPlayer) : canOpen(serverPlayer));
+    }
+
+    @Overwrite
+    protected boolean hasCheckUnlockedMixin() {
+        return true;
     }
 
     @Unique
