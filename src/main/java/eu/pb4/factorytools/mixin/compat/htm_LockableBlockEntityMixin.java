@@ -33,7 +33,7 @@ public abstract class htm_LockableBlockEntityMixin implements LockableObject {
                 && (display ? htmContainerLock.canOpen(serverPlayer) : canOpen(serverPlayer));
     }
 
-    @Overwrite
+    @Overwrite(remap = false)
     protected boolean hasCheckUnlockedMixin() {
         return true;
     }
