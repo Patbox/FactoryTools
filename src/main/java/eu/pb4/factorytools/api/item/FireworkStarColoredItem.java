@@ -1,22 +1,23 @@
 package eu.pb4.factorytools.api.item;
 
-import net.minecraft.client.item.TooltipContext;
+import it.unimi.dsi.fastutil.ints.IntList;
+import net.minecraft.client.item.TooltipType;
+import net.minecraft.component.DataComponentTypes;
+import net.minecraft.component.type.FireworkExplosionComponent;
 import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
 import net.minecraft.item.Items;
-import net.minecraft.nbt.NbtCompound;
-import net.minecraft.nbt.NbtIntArray;
+import net.minecraft.registry.RegistryWrapper;
 import net.minecraft.server.network.ServerPlayerEntity;
 import org.jetbrains.annotations.Nullable;
 
 public interface FireworkStarColoredItem extends AutoModeledPolymerItem {
     @Override
-    default ItemStack getPolymerItemStack(ItemStack itemStack, TooltipContext context, @Nullable ServerPlayerEntity player) {
-        var stack = AutoModeledPolymerItem.super.getPolymerItemStack(itemStack, context, player);
-        var ex = new NbtCompound();
-        var c = new NbtIntArray(new int[] { getItemColor(itemStack) });
-        ex.put("Colors", c);
-        stack.getOrCreateNbt().put("Explosion", ex);
+    default ItemStack getPolymerItemStack(ItemStack itemStack, TooltipType context, RegistryWrapper.WrapperLookup lookup, @Nullable ServerPlayerEntity player) {
+        var stack = AutoModeledPolymerItem.super.getPolymerItemStack(itemStack, context, lookup, player);
+        stack.set(DataComponentTypes.FIREWORK_EXPLOSION,
+                new FireworkExplosionComponent(FireworkExplosionComponent.Type.BURST,
+                        IntList.of(getItemColor(itemStack)), IntList.of(), false, false));
         return stack;
     }
 

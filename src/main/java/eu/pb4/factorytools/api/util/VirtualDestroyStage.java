@@ -7,6 +7,8 @@ import eu.pb4.polymer.virtualentity.api.ElementHolder;
 import eu.pb4.polymer.virtualentity.api.attachment.ChunkAttachment;
 import eu.pb4.polymer.virtualentity.api.elements.ItemDisplayElement;
 import net.minecraft.block.BlockState;
+import net.minecraft.component.DataComponentTypes;
+import net.minecraft.component.type.CustomModelDataComponent;
 import net.minecraft.item.ItemStack;
 import net.minecraft.item.Items;
 import net.minecraft.server.network.ServerPlayerEntity;
@@ -73,7 +75,7 @@ public class VirtualDestroyStage extends ElementHolder {
     static {
         for (int i = 0; i < MODELS.length; i++) {
             MODELS[i] = new ItemStack(Items.STICK);
-            MODELS[i].getOrCreateNbt().putInt("CustomModelData", PolymerResourcePackUtils.requestModel(Items.STICK, new Identifier(ModInit.ID, "block/special/destroy_stage_" + i)).value());
+            MODELS[i].set(DataComponentTypes.CUSTOM_MODEL_DATA, new CustomModelDataComponent(PolymerResourcePackUtils.requestModel(Items.STICK, new Identifier(ModInit.ID, "block/special/destroy_stage_" + i)).value()));
         }
 
         var model =  """

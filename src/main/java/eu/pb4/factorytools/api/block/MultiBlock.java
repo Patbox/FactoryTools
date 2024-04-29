@@ -23,7 +23,7 @@ import org.jetbrains.annotations.Nullable;
 
 import java.util.List;
 
-public class MultiBlock extends Block implements PolymerBlock {
+public abstract class MultiBlock extends Block implements PolymerBlock {
     private static IntProperty[] currentProperties;
     @Nullable
     public final IntProperty partX, partY, partZ;
@@ -279,10 +279,5 @@ public class MultiBlock extends Block implements PolymerBlock {
                 builder.add(currentProperty);
             }
         }
-    }
-
-    @Override
-    public Block getPolymerBlock(BlockState state) {
-        return Blocks.STONE;
     }
 }

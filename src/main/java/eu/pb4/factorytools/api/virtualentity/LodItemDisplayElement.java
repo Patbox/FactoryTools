@@ -59,8 +59,7 @@ public class LodItemDisplayElement extends ItemDisplayElement {
         return createSimple(getModel(model));
     }
 
-    @Deprecated
-    public static ItemStack getModel(Item model) {
+    private static ItemStack getModel(Item model) {
         return ItemDisplayElementUtil.getModel(model);
     }
 
@@ -164,11 +163,6 @@ public class LodItemDisplayElement extends ItemDisplayElement {
                 }
 
                 return x.isEmpty() ? null : x;
-            }
-
-            @Override
-            public boolean isEmpty() {
-                return nearTracker.isEmpty() || mainTracker.isEmpty();
             }
         };
     }

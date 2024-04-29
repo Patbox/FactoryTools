@@ -1,6 +1,8 @@
 package eu.pb4.factorytools.api.resourcepack;
 
 import eu.pb4.polymer.resourcepack.api.PolymerResourcePackUtils;
+import net.minecraft.component.DataComponentTypes;
+import net.minecraft.component.type.CustomModelDataComponent;
 import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
 import net.minecraft.item.Items;
@@ -15,7 +17,7 @@ public class BaseItemProvider {
             Items.NETHER_BRICK,
             Items.FLINT,
             Items.CLAY_BALL,
-            Items.SCUTE,
+            Items.TURTLE_SCUTE,
             Items.LEATHER,
             Items.RABBIT_HIDE,
             Items.RABBIT_FOOT,
@@ -94,7 +96,7 @@ public class BaseItemProvider {
 
     public static ItemStack requestModel(Item item, Identifier model) {
         var stack = new ItemStack(item);
-        stack.getOrCreateNbt().putInt("CustomModelData", PolymerResourcePackUtils.requestModel(stack.getItem(), model).value());
+        stack.set(DataComponentTypes.CUSTOM_MODEL_DATA, new CustomModelDataComponent(PolymerResourcePackUtils.requestModel(stack.getItem(), model).value()));
         return stack;
     }
 }

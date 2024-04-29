@@ -33,7 +33,7 @@ public class FactoryBlockItem extends BlockItem implements AutoModeledPolymerIte
         if (x == ActionResult.CONSUME) {
             if (context.getPlayer() instanceof ServerPlayerEntity player) {
                 var pos = Vec3d.ofCenter(context.getBlockPos().offset(context.getSide()));
-                var blockSoundGroup = this.getBlock().getSoundGroup(this.getBlock().getDefaultState());
+                var blockSoundGroup = this.getBlock().getDefaultState().getSoundGroup();
                 player.networkHandler.sendPacket(new PlaySoundS2CPacket(Registries.SOUND_EVENT.getEntry(this.getPlaceSound(this.getBlock().getDefaultState())), SoundCategory.BLOCKS, pos.x, pos.y, pos.z, (blockSoundGroup.getVolume() + 1.0F) / 2.0F, blockSoundGroup.getPitch() * 0.8F, context.getPlayer().getRandom().nextLong()));
             }
             return ActionResult.SUCCESS;

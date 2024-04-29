@@ -7,6 +7,8 @@ import eu.pb4.polymer.virtualentity.api.tracker.DataTrackerLike;
 import eu.pb4.polymer.virtualentity.api.tracker.DisplayTrackedData;
 import it.unimi.dsi.fastutil.objects.Reference2ObjectOpenHashMap;
 import net.minecraft.client.render.model.json.ModelTransformationMode;
+import net.minecraft.component.DataComponentTypes;
+import net.minecraft.component.type.CustomModelDataComponent;
 import net.minecraft.entity.data.DataTracker;
 import net.minecraft.entity.data.TrackedData;
 import net.minecraft.item.Item;
@@ -40,7 +42,7 @@ public class ItemDisplayElementUtil {
         if (stack == null) {
             if (model instanceof AutoModeledPolymerItem simpleModeledPolymerItem) {
                 stack = new ItemStack(simpleModeledPolymerItem.getPolymerItem());
-                stack.getOrCreateNbt().putInt("CustomModelData", simpleModeledPolymerItem.getPolymerCustomModelData());
+                stack.set(DataComponentTypes.CUSTOM_MODEL_DATA, new CustomModelDataComponent(simpleModeledPolymerItem.getPolymerCustomModelData()));
             } else {
                 stack = new ItemStack(model);
             }
