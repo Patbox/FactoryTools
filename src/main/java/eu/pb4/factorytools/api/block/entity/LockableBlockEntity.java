@@ -129,7 +129,7 @@ public abstract class LockableBlockEntity extends BlockEntity {
 
     @Override
     protected void readComponents(ComponentsAccess components) {
-        this.lock = components.get(DataComponentTypes.LOCK);
+        this.lock = components.getOrDefault(DataComponentTypes.LOCK, this.lock);
         this.customName = components.get(DataComponentTypes.CUSTOM_NAME);
     }
 
