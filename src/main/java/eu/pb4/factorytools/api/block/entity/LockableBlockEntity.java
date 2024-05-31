@@ -48,10 +48,10 @@ public abstract class LockableBlockEntity extends BlockEntity {
         if (nbt.contains("CustomName", 8)) {
             this.customName = Text.Serialization.fromJson(nbt.getString("CustomName"), lookup);
         }
-        this.readNbtMixin(nbt);
+        this.readNbtMixin(nbt, lookup);
     }
 
-    private void readNbtMixin(NbtCompound nbt) {}
+    private void readNbtMixin(NbtCompound nbt, RegistryWrapper.WrapperLookup lookup) {}
 
     protected void writeNbt(NbtCompound nbt, RegistryWrapper.WrapperLookup lookup) {
         super.writeNbt(nbt, lookup);
@@ -59,10 +59,10 @@ public abstract class LockableBlockEntity extends BlockEntity {
         if (this.customName != null) {
             nbt.putString("CustomName", Text.Serialization.toJsonString(this.customName, lookup));
         }
-        this.writeNbtMixin(nbt);
+        this.writeNbtMixin(nbt, lookup);
     }
 
-    private void writeNbtMixin(NbtCompound nbt) {}
+    private void writeNbtMixin(NbtCompound nbt, RegistryWrapper.WrapperLookup lookup) {}
 
     public Text getName() {
         return this.customName != null ? this.customName : this.getContainerName();
