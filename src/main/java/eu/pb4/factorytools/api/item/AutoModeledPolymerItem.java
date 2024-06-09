@@ -33,7 +33,7 @@ public interface AutoModeledPolymerItem extends RegistryCallbackItem, PolymerIte
 
     @Override
     default void onRegistered(Identifier selfId) {
-        var item = new Identifier(selfId.getNamespace(), "item/" + selfId.getPath());
+        var item = Identifier.of(selfId.getNamespace(), "item/" + selfId.getPath());
         MODELS.put(this, PolymerResourcePackUtils.requestModel(this.getPolymerItem(), item));
     }
 }

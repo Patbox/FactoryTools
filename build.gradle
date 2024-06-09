@@ -30,9 +30,9 @@ dependencies {
 	modLocalRuntime "net.fabricmc.fabric-api:fabric-api:${project.fabric_version}"
 	modCompileOnly "net.fabricmc.fabric-api:fabric-api:${project.fabric_version}"
 
-	modImplementation 'eu.pb4:polymer-core:0.8.0-beta.7+1.20.5'
-	modImplementation 'eu.pb4:polymer-resource-pack:0.8.0-beta.7+1.20.5'
-	modImplementation 'eu.pb4:polymer-virtual-entity:0.8.0-beta.7+1.20.5'
+	modImplementation 'eu.pb4:polymer-core:0.9.0-pre.1+1.21-pre3'
+	modImplementation 'eu.pb4:polymer-resource-pack:0.9.0-pre.1+1.21-pre3'
+	modImplementation 'eu.pb4:polymer-virtual-entity:0.9.0-pre.1+1.21-pre3'
 	modCompileOnly("maven.modrinth:htm:1.1.12")
 
 

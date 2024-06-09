@@ -74,8 +74,7 @@ public class VirtualDestroyStage extends ElementHolder {
 
     static {
         for (int i = 0; i < MODELS.length; i++) {
-            MODELS[i] = new ItemStack(Items.STICK);
-            MODELS[i].set(DataComponentTypes.CUSTOM_MODEL_DATA, new CustomModelDataComponent(PolymerResourcePackUtils.requestModel(Items.STICK, new Identifier(ModInit.ID, "block/special/destroy_stage_" + i)).value()));
+            MODELS[i] = PolymerResourcePackUtils.requestModel(Items.STICK, Identifier.of(ModInit.ID, "block/special/destroy_stage_" + i)).asStack();
         }
 
         var model =  """

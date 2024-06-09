@@ -28,13 +28,14 @@
   "depends": {
     "fabricloader": ">=0.15.0",
     "fabric-api": "*",
-    "minecraft": ">=1.20.3-",
-    "polymer-core": ">=0.7.0",
-    "polymer-resource-pack": ">=0.7.0",
-    "polymer-virtual-entity": ">=0.7.0",
-    "java": ">=17"
+    "minecraft": ">=1.21-",
+    "polymer-core": ">=0.9.0-",
+    "polymer-resource-pack": ">=0.9.0-",
+    "polymer-virtual-entity": ">=0.9.0-",
+    "java": ">=21"
   },
   "breaks": {
+    "arclight": "*",
     "banner": "*",
     "cardboard": "*"
   }
