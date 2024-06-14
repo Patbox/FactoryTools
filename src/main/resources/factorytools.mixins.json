@@ -14,6 +14,7 @@
     "compat.htm_LockableBlockEntityMixin",
     "player.BlockItemMixin",
     "player.PlayerEntityAccessor",
+    "player.ServerPlayerEntityMixin",
     "player.ServerPlayerInteractionManagerMixin",
     "player.ServerPlayNetworkHandlerMixin"
   ],
