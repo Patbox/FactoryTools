@@ -19,6 +19,9 @@
   "entrypoints": {
     "main": [
       "eu.pb4.factorytools.impl.ModInit"
+    ],
+    "fabric-datagen": [
+      "eu.pb4.factorytools.impl.datagen.DataGenInit"
     ]
   },
   "mixins": [
