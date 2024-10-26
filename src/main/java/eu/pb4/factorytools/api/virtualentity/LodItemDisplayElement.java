@@ -1,28 +1,21 @@
 package eu.pb4.factorytools.api.virtualentity;
 
-import eu.pb4.factorytools.api.item.AutoModeledPolymerItem;
-import eu.pb4.factorytools.impl.DebugData;
-import eu.pb4.polymer.core.impl.PolymerImplUtils;
 import eu.pb4.polymer.virtualentity.api.elements.ItemDisplayElement;
 import eu.pb4.polymer.virtualentity.api.tracker.DataTrackerLike;
 import eu.pb4.polymer.virtualentity.api.tracker.DisplayTrackedData;
 import eu.pb4.polymer.virtualentity.api.tracker.SimpleDataTracker;
-import it.unimi.dsi.fastutil.Hash;
-import it.unimi.dsi.fastutil.objects.ObjectOpenCustomHashSet;
-import it.unimi.dsi.fastutil.objects.ObjectOpenHashSet;
-import it.unimi.dsi.fastutil.objects.Reference2ObjectOpenHashMap;
-import net.minecraft.client.render.model.json.ModelTransformationMode;
 import net.minecraft.entity.data.DataTracker;
 import net.minecraft.entity.data.TrackedData;
 import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
+import net.minecraft.item.ModelTransformationMode;
 import net.minecraft.network.listener.ClientPlayPacketListener;
 import net.minecraft.network.packet.Packet;
 import net.minecraft.network.packet.s2c.play.EntityTrackerUpdateS2CPacket;
 import net.minecraft.server.network.ServerPlayNetworkHandler;
+import net.minecraft.util.Identifier;
 import org.jetbrains.annotations.Nullable;
 
-import javax.sound.midi.Track;
 import java.util.*;
 
 public class LodItemDisplayElement extends ItemDisplayElement {
@@ -56,11 +49,11 @@ public class LodItemDisplayElement extends ItemDisplayElement {
     }
 
     public static LodItemDisplayElement createSimple(Item model) {
-        return createSimple(getModel(model));
+        return createSimple(ItemDisplayElementUtil.getModel(model));
     }
 
-    private static ItemStack getModel(Item model) {
-        return ItemDisplayElementUtil.getModel(model);
+    public static LodItemDisplayElement createSimple(Identifier model) {
+        return createSimple(ItemDisplayElementUtil.getModel(model));
     }
 
     public static LodItemDisplayElement createSimple(ItemStack model) {
@@ -82,7 +75,11 @@ public class LodItemDisplayElement extends ItemDisplayElement {
         return element;
     }
     public static LodItemDisplayElement createSimple(Item model, int updateRate) {
-        return createSimple(getModel(model), updateRate);
+        return createSimple(ItemDisplayElementUtil.getModel(model), updateRate);
+    }
+
+    public static LodItemDisplayElement createSimple(Identifier model, int updateRate) {
+        return createSimple(ItemDisplayElementUtil.getModel(model), updateRate);
     }
 
     public static LodItemDisplayElement createSimple(ItemStack model, int updateRate) {

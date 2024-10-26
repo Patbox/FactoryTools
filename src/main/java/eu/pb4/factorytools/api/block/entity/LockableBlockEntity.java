@@ -44,7 +44,7 @@ public abstract class LockableBlockEntity extends BlockEntity {
 
     public void readNbt(NbtCompound nbt, RegistryWrapper.WrapperLookup lookup) {
         super.readNbt(nbt, lookup);
-        this.lock = ContainerLock.fromNbt(nbt);
+        this.lock = ContainerLock.fromNbt(nbt, lookup);
         if (nbt.contains("CustomName", 8)) {
             this.customName = Text.Serialization.fromJson(nbt.getString("CustomName"), lookup);
         }
@@ -55,7 +55,7 @@ public abstract class LockableBlockEntity extends BlockEntity {
 
     protected void writeNbt(NbtCompound nbt, RegistryWrapper.WrapperLookup lookup) {
         super.writeNbt(nbt, lookup);
-        this.lock.writeNbt(nbt);
+        this.lock.writeNbt(nbt, lookup);
         if (this.customName != null) {
             nbt.putString("CustomName", Text.Serialization.toJsonString(this.customName, lookup));
         }

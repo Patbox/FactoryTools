@@ -9,6 +9,8 @@ import net.minecraft.state.property.BooleanProperty;
 import net.minecraft.state.property.Properties;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.world.WorldAccess;
+import net.minecraft.world.WorldView;
+import net.minecraft.world.tick.ScheduledTickView;
 
 public interface QuickWaterloggable extends Waterloggable {
     BooleanProperty WATERLOGGED = Properties.WATERLOGGED;
@@ -19,9 +21,9 @@ public interface QuickWaterloggable extends Waterloggable {
         return state.with(WATERLOGGED, bl);
     }
 
-    default void tickWater(BlockState state, WorldAccess world, BlockPos pos) {
+    default void tickWater(BlockState state, WorldView worldView, ScheduledTickView tickView, BlockPos pos) {
         if ((Boolean)state.get(WATERLOGGED)) {
-            world.scheduleFluidTick(pos, Fluids.WATER, Fluids.WATER.getTickRate(world));
+            tickView.scheduleFluidTick(pos, Fluids.WATER, Fluids.WATER.getTickRate(worldView));
         }
     }
 }

@@ -1,5 +1,5 @@
 plugins {
-	id 'fabric-loom' version '1.6.+'
+	id 'fabric-loom' version '1.7.+'
 	id 'maven-publish'
 }
 
@@ -27,6 +27,7 @@ loom {
 			name = "Data Generation"
 			runDir = "build/datagen"
 			vmArg("-Dfabric-api.datagen")
+			vmArg("-Dfabric-api.datagen.modid=factorytools")
 			vmArg("-Dfabric-api.datagen.output-dir=${file("src/main/generated")}")
 		}
 	}
@@ -53,9 +54,9 @@ dependencies {
 	modLocalRuntime "net.fabricmc.fabric-api:fabric-api:${project.fabric_version}"
 	modCompileOnly "net.fabricmc.fabric-api:fabric-api:${project.fabric_version}"
 
-	modImplementation 'eu.pb4:polymer-core:0.9.9+1.21'
-	modImplementation 'eu.pb4:polymer-resource-pack:0.9.9+1.21'
-	modImplementation 'eu.pb4:polymer-virtual-entity:0.9.9+1.21'
+	modImplementation 'eu.pb4:polymer-core:0.10.1+1.21.3'
+	modImplementation 'eu.pb4:polymer-resource-pack:0.10.1+1.21.3'
+	modImplementation 'eu.pb4:polymer-virtual-entity:0.10.1+1.21.3'
 	modCompileOnly("maven.modrinth:htm:1.1.12")
 
 
@@ -78,7 +79,7 @@ tasks.withType(JavaCompile).configureEach {
 	// If Javadoc is generated, this must be specified in that task too.
 	it.options.encoding = "UTF-8"
 
-	it.options.release = 17
+	it.options.release = 21
 }
 
 java {

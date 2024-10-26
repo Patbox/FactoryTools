@@ -10,7 +10,7 @@ import net.minecraft.block.piston.PistonBehavior;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.item.ItemPlacementContext;
 import net.minecraft.item.ItemStack;
-import net.minecraft.loot.context.LootContextParameterSet;
+import net.minecraft.loot.context.LootWorldContext;
 import net.minecraft.server.world.ServerWorld;
 import net.minecraft.state.StateManager;
 import net.minecraft.state.property.IntProperty;
@@ -19,6 +19,8 @@ import net.minecraft.util.math.Direction;
 import net.minecraft.util.math.random.Random;
 import net.minecraft.world.World;
 import net.minecraft.world.WorldAccess;
+import net.minecraft.world.WorldView;
+import net.minecraft.world.tick.ScheduledTickView;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.List;
@@ -169,7 +171,7 @@ public abstract class MultiBlock extends Block implements PolymerBlock {
     }
 
     @Override
-    public List<ItemStack> getDroppedStacks(BlockState state, LootContextParameterSet.Builder builder) {
+    protected List<ItemStack> getDroppedStacks(BlockState state, LootWorldContext.Builder builder) {
         if (this.canDropStackFrom(state)) {
             return super.getDroppedStacks(state, builder);
         }
@@ -188,18 +190,17 @@ public abstract class MultiBlock extends Block implements PolymerBlock {
         super.scheduledTick(state, world, pos, random);
     }
 
-    @SuppressWarnings("deprecation")
     @Override
-    public BlockState getStateForNeighborUpdate(BlockState state, Direction direction, BlockState neighborState, WorldAccess world, BlockPos pos, BlockPos neighborPos) {
+    protected BlockState getStateForNeighborUpdate(BlockState state, WorldView world, ScheduledTickView tickView, BlockPos pos, Direction direction, BlockPos neighborPos, BlockState neighborState, Random random) {
         var property = getForDirection(direction);
         if (property == null) {
-            return super.getStateForNeighborUpdate(state, direction, neighborState, world, pos, neighborPos);
+            return super.getStateForNeighborUpdate(state, world, tickView, pos, direction, neighborPos, neighborState, random);
         }
         var value = state.get(property);
         var expectedSideValue = value + direction.getDirection().offset();
 
         if (expectedSideValue < 0 || expectedSideValue > getMax(state, direction)) {
-            return super.getStateForNeighborUpdate(state, direction, neighborState, world, pos, neighborPos);
+            return super.getStateForNeighborUpdate(state, world, tickView, pos, direction, neighborPos, neighborState, random);
         }
 
         var x = this.getX(state);
@@ -210,7 +211,7 @@ public abstract class MultiBlock extends Block implements PolymerBlock {
                 || (neighborState.isOf(this) && neighborState.get(property) == expectedSideValue)
                 || this.ignoreNeighborUpdate(state, direction, pos, neighborPos, neighborState)
         ) {
-            return super.getStateForNeighborUpdate(state, direction, neighborState, world, pos, neighborPos);
+            return super.getStateForNeighborUpdate(state, world, tickView, pos, direction, neighborPos, neighborState, random);
         }
 
         return Blocks.AIR.getDefaultState();
@@ -250,7 +251,6 @@ public abstract class MultiBlock extends Block implements PolymerBlock {
         };
     }
 
-    @Nullable
     protected int getMax(BlockState state, Direction direction) {
         return switch (direction.getAxis()) {
             case X -> this.getMaxX(state);

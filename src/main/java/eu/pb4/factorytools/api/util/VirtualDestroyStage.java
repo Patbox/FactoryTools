@@ -1,5 +1,6 @@
 package eu.pb4.factorytools.api.util;
 
+import eu.pb4.factorytools.api.virtualentity.ItemDisplayElementUtil;
 import eu.pb4.factorytools.impl.ModInit;
 import eu.pb4.factorytools.impl.ServerPlayNetExtF;
 import eu.pb4.polymer.resourcepack.api.PolymerResourcePackUtils;
@@ -73,8 +74,10 @@ public class VirtualDestroyStage extends ElementHolder {
 
 
     static {
+        PolymerResourcePackUtils.addBridgedModelsFolder(Identifier.of(ModInit.ID, "block/special"));
+
         for (int i = 0; i < MODELS.length; i++) {
-            MODELS[i] = PolymerResourcePackUtils.requestModel(Items.STICK, Identifier.of(ModInit.ID, "block/special/destroy_stage_" + i)).asStack();
+            MODELS[i] = ItemDisplayElementUtil.getModel(Identifier.of(ModInit.ID, "block/special/destroy_stage_" + i));
         }
 
         var model =  """

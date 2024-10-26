@@ -1,32 +1,26 @@
 package eu.pb4.factorytools.api.virtualentity;
 
-import eu.pb4.factorytools.api.item.AutoModeledPolymerItem;
-import eu.pb4.factorytools.impl.DebugData;
+import eu.pb4.polymer.resourcepack.api.PolymerResourcePackUtils;
 import eu.pb4.polymer.virtualentity.api.elements.ItemDisplayElement;
-import eu.pb4.polymer.virtualentity.api.tracker.DataTrackerLike;
-import eu.pb4.polymer.virtualentity.api.tracker.DisplayTrackedData;
 import it.unimi.dsi.fastutil.objects.Reference2ObjectOpenHashMap;
-import net.minecraft.client.render.model.json.ModelTransformationMode;
 import net.minecraft.component.DataComponentTypes;
-import net.minecraft.component.type.CustomModelDataComponent;
-import net.minecraft.entity.data.DataTracker;
-import net.minecraft.entity.data.TrackedData;
 import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
-import net.minecraft.network.listener.ClientPlayPacketListener;
-import net.minecraft.network.packet.Packet;
-import net.minecraft.network.packet.s2c.play.EntityTrackerUpdateS2CPacket;
-import net.minecraft.server.network.ServerPlayNetworkHandler;
-import org.jetbrains.annotations.Nullable;
+import net.minecraft.item.Items;
+import net.minecraft.item.ModelTransformationMode;
+import net.minecraft.util.Identifier;
 
-import java.util.List;
+import java.util.HashMap;
 import java.util.Map;
-import java.util.Objects;
 
 public class ItemDisplayElementUtil {
-    private static final Map<Item, ItemStack> MODEL_MAP = new Reference2ObjectOpenHashMap<>();
+    private static final Map<Item, ItemStack> ITEM_MODEL_MAP = new Reference2ObjectOpenHashMap<>();
+    private static final Map<Identifier, ItemStack> ID_MODEL_MAP = new HashMap<>();
 
     public static ItemDisplayElement createSimple(Item model) {
+        return createSimple(getModel(model));
+    }
+    public static ItemDisplayElement createSimple(Identifier model) {
         return createSimple(getModel(model));
     }
 
@@ -34,20 +28,37 @@ public class ItemDisplayElementUtil {
         ItemStack stack;
         while (true) {
             try {
-                stack = MODEL_MAP.get(model);
+                stack = ITEM_MODEL_MAP.get(model);
                 break;
             } catch (Throwable ignore) {}
         }
 
         if (stack == null) {
-            if (model instanceof AutoModeledPolymerItem simpleModeledPolymerItem) {
-                stack = new ItemStack(simpleModeledPolymerItem.getPolymerItem());
-                stack.set(DataComponentTypes.CUSTOM_MODEL_DATA, new CustomModelDataComponent(simpleModeledPolymerItem.getPolymerCustomModelData()));
-            } else {
-                stack = new ItemStack(model);
+            stack = new ItemStack(Items.TRIAL_KEY);
+            stack.set(DataComponentTypes.ITEM_MODEL, model.getComponents().get(DataComponentTypes.ITEM_MODEL));
+
+            synchronized (ITEM_MODEL_MAP) {
+                ITEM_MODEL_MAP.put(model, stack);
             }
-            synchronized (MODEL_MAP) {
-                MODEL_MAP.put(model, stack);
+        }
+        return stack;
+    }
+
+    public static ItemStack getModel(Identifier model) {
+        ItemStack stack;
+        while (true) {
+            try {
+                stack = ID_MODEL_MAP.get(model);
+                break;
+            } catch (Throwable ignore) {}
+        }
+
+        if (stack == null) {
+            stack = new ItemStack(Items.TRIAL_KEY);
+            stack.set(DataComponentTypes.ITEM_MODEL, PolymerResourcePackUtils.getBridgedModelId(model));
+
+            synchronized (ID_MODEL_MAP) {
+                ID_MODEL_MAP.put(model, stack);
             }
         }
         return stack;
@@ -60,6 +71,10 @@ public class ItemDisplayElementUtil {
     }
 
     public static ItemDisplayElement createSimple(Item model, int updateRate) {
+        return createSimple(getModel(model), updateRate);
+    }
+
+    public static ItemDisplayElement createSimple(Identifier model, int updateRate) {
         return createSimple(getModel(model), updateRate);
     }
 

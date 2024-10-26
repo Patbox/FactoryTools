@@ -1,6 +1,6 @@
 package eu.pb4.factorytools.api.virtualentity;
 
-import eu.pb4.factorytools.api.util.ThreadedMatrix4f;
+import eu.pb4.factorytools.api.util.SharedMatrix4f;
 import eu.pb4.factorytools.impl.CompatStatus;
 import eu.pb4.polymer.virtualentity.api.ElementHolder;
 import eu.pb4.polymer.virtualentity.api.attachment.BlockAwareAttachment;
@@ -18,17 +18,10 @@ public class BlockModel extends ElementHolder {
     private static int startTick = 0;
     private int updateTick = (startTick++) % 20;
 
-    /**
-     * Use {@code var mat = mat()} instead
-     */
-    @Deprecated
-    protected static final Matrix4f mat = CompatStatus.C2ME ? new ThreadedMatrix4f() : new Matrix4f();
+    private static final SharedMatrix4f mat = new SharedMatrix4f();
 
     public static Matrix4f mat() {
-        if (CompatStatus.C2ME) {
-            return ((ThreadedMatrix4f) mat).getMat().identity();
-        }
-        return mat.identity();
+        return mat.main();
     }
 
     public final int getTick() {
@@ -41,7 +34,6 @@ public class BlockModel extends ElementHolder {
 
     @Override
     public void tick() {
-        mat.identity();
         super.tick();
         this.updateTick++;
     }
@@ -69,6 +61,4 @@ public class BlockModel extends ElementHolder {
         var x = blockAware();
         return x != null && x.isPartOfTheWorld();
     }
-
-
 }
