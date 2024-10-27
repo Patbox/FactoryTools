@@ -4,6 +4,7 @@ import eu.pb4.polymer.resourcepack.api.PolymerResourcePackUtils;
 import eu.pb4.polymer.virtualentity.api.elements.ItemDisplayElement;
 import it.unimi.dsi.fastutil.objects.Reference2ObjectOpenHashMap;
 import net.minecraft.component.DataComponentTypes;
+import net.minecraft.component.type.DyedColorComponent;
 import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
 import net.minecraft.item.Items;
@@ -12,10 +13,13 @@ import net.minecraft.util.Identifier;
 
 import java.util.HashMap;
 import java.util.Map;
+import java.util.function.Function;
 
 public class ItemDisplayElementUtil {
     private static final Map<Item, ItemStack> ITEM_MODEL_MAP = new Reference2ObjectOpenHashMap<>();
+    private static final Map<Item, ItemStack> ITEM_MODEL_COLORED_MAP = new Reference2ObjectOpenHashMap<>();
     private static final Map<Identifier, ItemStack> ID_MODEL_MAP = new HashMap<>();
+    private static final Map<Identifier, ItemStack> ID_MODEL_COLORED_MAP = new HashMap<>();
 
     public static ItemDisplayElement createSimple(Item model) {
         return createSimple(getModel(model));
@@ -25,42 +29,23 @@ public class ItemDisplayElementUtil {
     }
 
     public static ItemStack getModel(Item model) {
-        ItemStack stack;
-        while (true) {
-            try {
-                stack = ITEM_MODEL_MAP.get(model);
-                break;
-            } catch (Throwable ignore) {}
-        }
-
-        if (stack == null) {
-            stack = new ItemStack(Items.TRIAL_KEY);
-            stack.set(DataComponentTypes.ITEM_MODEL, model.getComponents().get(DataComponentTypes.ITEM_MODEL));
-
-            synchronized (ITEM_MODEL_MAP) {
-                ITEM_MODEL_MAP.put(model, stack);
-            }
-        }
-        return stack;
+        return getModelGeneric(model, ITEM_MODEL_MAP, Items.TRIAL_KEY, (item) -> item.getComponents().get(DataComponentTypes.ITEM_MODEL));
     }
 
     public static ItemStack getModel(Identifier model) {
-        ItemStack stack;
-        while (true) {
-            try {
-                stack = ID_MODEL_MAP.get(model);
-                break;
-            } catch (Throwable ignore) {}
-        }
+        return getModelGeneric(model, ID_MODEL_MAP, Items.TRIAL_KEY, PolymerResourcePackUtils::bridgeModel);
+    }
 
-        if (stack == null) {
-            stack = new ItemStack(Items.TRIAL_KEY);
-            stack.set(DataComponentTypes.ITEM_MODEL, PolymerResourcePackUtils.getBridgedModelId(model));
+    public static ItemStack getModelColored(Item model, int color) {
+        var stack = getModelGeneric(model, ITEM_MODEL_COLORED_MAP, Items.LEATHER_HORSE_ARMOR,
+                (item) -> item.getComponents().get(DataComponentTypes.ITEM_MODEL)).copy();
+        stack.set(DataComponentTypes.DYED_COLOR, new DyedColorComponent(color, false));
+        return stack;
+    }
 
-            synchronized (ID_MODEL_MAP) {
-                ID_MODEL_MAP.put(model, stack);
-            }
-        }
+    public static ItemStack getModelColored(Identifier model, int color) {
+        var stack = getModelGeneric(model, ID_MODEL_COLORED_MAP, Items.LEATHER_HORSE_ARMOR, PolymerResourcePackUtils::bridgeModel).copy();
+        stack.set(DataComponentTypes.DYED_COLOR, new DyedColorComponent(color, false));
         return stack;
     }
 
@@ -92,5 +77,25 @@ public class ItemDisplayElementUtil {
         element.setTeleportDuration(1);
         element.setInvisible(true);
         return element;
+    }
+
+    private static <T> ItemStack getModelGeneric(T model, Map<T, ItemStack> map, Item baseItem, Function<T, Identifier> itemModelfier) {
+        ItemStack stack;
+        while (true) {
+            try {
+                stack = map.get(model);
+                break;
+            } catch (Throwable ignore) {}
+        }
+
+        if (stack == null) {
+            stack = new ItemStack(baseItem);
+            stack.set(DataComponentTypes.ITEM_MODEL, itemModelfier.apply(model));
+
+            synchronized (map) {
+                map.put(model, stack);
+            }
+        }
+        return stack;
     }
 }

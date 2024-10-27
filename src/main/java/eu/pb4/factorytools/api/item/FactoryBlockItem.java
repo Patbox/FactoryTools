@@ -41,7 +41,7 @@ public class FactoryBlockItem extends BlockItem implements PolymerItem {
     }
 
     @Override
-    public final Item getPolymerItem(ItemStack stack, PacketContext context) {
+    public Item getPolymerItem(ItemStack stack, PacketContext context) {
         return this.polymerItem;
     }
 }
