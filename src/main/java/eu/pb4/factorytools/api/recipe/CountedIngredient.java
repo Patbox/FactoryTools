@@ -42,8 +42,8 @@ public record CountedIngredient(Optional<Ingredient> ingredient, ItemComponentPr
             y -> new CountedIngredient(Optional.of(y), ItemComponentPredicate.EMPTY, 1, tryGettingLeftover(y)));
 
     public static ItemStack tryGettingLeftover(Ingredient y) {
-        if (!y.getMatchingItems().isEmpty()) {
-            return y.getMatchingItems().getFirst().value().getRecipeRemainder();
+        if (y.getMatchingItems().count() > 0) {
+            return y.getMatchingItems().findFirst().get().value().getRecipeRemainder();
         }
 
         return ItemStack.EMPTY;

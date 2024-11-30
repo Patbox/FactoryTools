@@ -1,9 +1,12 @@
 package eu.pb4.factorytools.api.virtualentity;
 
 import eu.pb4.polymer.resourcepack.api.PolymerResourcePackUtils;
+import eu.pb4.polymer.resourcepack.extras.api.ResourcePackExtras;
 import eu.pb4.polymer.virtualentity.api.elements.ItemDisplayElement;
+import it.unimi.dsi.fastutil.ints.IntList;
 import it.unimi.dsi.fastutil.objects.Reference2ObjectOpenHashMap;
 import net.minecraft.component.DataComponentTypes;
+import net.minecraft.component.type.CustomModelDataComponent;
 import net.minecraft.component.type.DyedColorComponent;
 import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
@@ -12,14 +15,13 @@ import net.minecraft.item.ModelTransformationMode;
 import net.minecraft.util.Identifier;
 
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.function.Function;
 
 public class ItemDisplayElementUtil {
     private static final Map<Item, ItemStack> ITEM_MODEL_MAP = new Reference2ObjectOpenHashMap<>();
-    private static final Map<Item, ItemStack> ITEM_MODEL_COLORED_MAP = new Reference2ObjectOpenHashMap<>();
     private static final Map<Identifier, ItemStack> ID_MODEL_MAP = new HashMap<>();
-    private static final Map<Identifier, ItemStack> ID_MODEL_COLORED_MAP = new HashMap<>();
 
     public static ItemDisplayElement createSimple(Item model) {
         return createSimple(getModel(model));
@@ -33,20 +35,15 @@ public class ItemDisplayElementUtil {
     }
 
     public static ItemStack getModel(Identifier model) {
-        return getModelGeneric(model, ID_MODEL_MAP, Items.TRIAL_KEY, PolymerResourcePackUtils::bridgeModel);
+        return getModelGeneric(model, ID_MODEL_MAP, Items.TRIAL_KEY, ResourcePackExtras::bridgeModel);
     }
 
-    public static ItemStack getModelColored(Item model, int color) {
-        var stack = getModelGeneric(model, ITEM_MODEL_COLORED_MAP, Items.LEATHER_HORSE_ARMOR,
-                (item) -> item.getComponents().get(DataComponentTypes.ITEM_MODEL)).copy();
-        stack.set(DataComponentTypes.DYED_COLOR, new DyedColorComponent(color, false));
-        return stack;
+    public static ItemStack getModelCopy(Item model) {
+        return getModel(model).copy();
     }
 
-    public static ItemStack getModelColored(Identifier model, int color) {
-        var stack = getModelGeneric(model, ID_MODEL_COLORED_MAP, Items.LEATHER_HORSE_ARMOR, PolymerResourcePackUtils::bridgeModel).copy();
-        stack.set(DataComponentTypes.DYED_COLOR, new DyedColorComponent(color, false));
-        return stack;
+    public static ItemStack getModelCopy(Identifier model) {
+        return getModel(model).copy();
     }
 
     public static ItemDisplayElement createSimple(ItemStack model) {
