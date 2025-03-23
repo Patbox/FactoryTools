@@ -7,8 +7,8 @@ import eu.pb4.polymer.virtualentity.api.tracker.SimpleDataTracker;
 import net.minecraft.entity.data.DataTracker;
 import net.minecraft.entity.data.TrackedData;
 import net.minecraft.item.Item;
+import net.minecraft.item.ItemDisplayContext;
 import net.minecraft.item.ItemStack;
-import net.minecraft.item.ModelTransformationMode;
 import net.minecraft.network.listener.ClientPlayPacketListener;
 import net.minecraft.network.packet.Packet;
 import net.minecraft.network.packet.s2c.play.EntityTrackerUpdateS2CPacket;
@@ -92,7 +92,7 @@ public class LodItemDisplayElement extends ItemDisplayElement {
         var element = new LodItemDisplayElement();
         element.setDisplaySize(2, 2);
         element.setViewRange(0.8f);
-        element.setModelTransformation(ModelTransformationMode.FIXED);
+        element.setItemDisplayContext(ItemDisplayContext.FIXED);
         element.setTeleportDuration(1);
         element.setInvisible(true);
         return element;

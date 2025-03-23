@@ -5,8 +5,8 @@ import com.mojang.serialization.*;
 import net.minecraft.component.ComponentMap;
 import net.minecraft.component.ComponentType;
 import net.minecraft.item.ItemStack;
-import net.minecraft.predicate.ComponentPredicate;
-import net.minecraft.predicate.item.ItemSubPredicate;
+import net.minecraft.predicate.component.ComponentMapPredicate;
+import net.minecraft.predicate.component.ComponentPredicate;
 import net.minecraft.registry.Registries;
 import net.minecraft.registry.entry.RegistryEntryList;
 import net.minecraft.util.Identifier;
@@ -17,7 +17,7 @@ import java.util.Objects;
 import java.util.function.Predicate;
 import java.util.stream.Stream;
 
-public record ItemComponentPredicate(ComponentPredicate components, Map<ItemSubPredicate.Type<?>, ItemSubPredicate> subPredicates) implements Predicate<ItemStack> {
+public record ItemComponentPredicate(ComponentMapPredicate components, Map<ComponentPredicate.Type<?>, ComponentPredicate> subPredicates) implements Predicate<ItemStack> {
     public static final MapCodec<ItemComponentPredicate> MAP_CODEC = new MapCodec<>() {
         @SuppressWarnings("unchecked")
         @Override
@@ -28,8 +28,8 @@ public record ItemComponentPredicate(ComponentPredicate components, Map<ItemSubP
             }
 
             for (var x : input.subPredicates.entrySet()) {
-                prefix = prefix.add("~" + Registries.ITEM_SUB_PREDICATE_TYPE.getId(x.getKey()),
-                        ((Codec<Object>) x.getKey().codec()).encodeStart(ops, x.getValue()).getOrThrow());
+                prefix = prefix.add("~" + Registries.DATA_COMPONENT_PREDICATE_TYPE.getId(x.getKey()),
+                        ((Codec<Object>) x.getKey().getPredicateCodec()).encodeStart(ops, x.getValue()).getOrThrow());
             }
 
             return prefix;
@@ -39,14 +39,14 @@ public record ItemComponentPredicate(ComponentPredicate components, Map<ItemSubP
         @Override
         public <T> DataResult<ItemComponentPredicate> decode(DynamicOps<T> ops, MapLike<T> input) {
             try {
-                var componentBuilder = ComponentPredicate.builder();
-                var subPredicateBuilder = new ImmutableMap.Builder<ItemSubPredicate.Type<?>, ItemSubPredicate>();
+                var componentBuilder = ComponentMapPredicate.builder();
+                var subPredicateBuilder = new ImmutableMap.Builder<ComponentPredicate.Type<?>, ComponentPredicate>();
                 input.entries().forEach((pair) -> {
                     var key = ops.getStringValue(pair.getFirst()).getOrThrow();
                     if (key.charAt(key.length() - 1) == '~') {
-                        var type = Registries.ITEM_SUB_PREDICATE_TYPE.get(Identifier.tryParse(key.substring(0, key.length() - 1)));
+                        var type = Registries.DATA_COMPONENT_PREDICATE_TYPE.get(Identifier.tryParse(key.substring(0, key.length() - 1)));
                         if (type != null) {
-                            subPredicateBuilder.put(type, type.codec().decode(ops, pair.getSecond()).getOrThrow().getFirst());
+                            subPredicateBuilder.put(type, type.getPredicateCodec().decode(ops, pair.getSecond()).getOrThrow().getFirst());
                         }
                     } else {
                         var type = (ComponentType<Object>) Registries.DATA_COMPONENT_TYPE.get(Identifier.tryParse(key));
@@ -69,7 +69,7 @@ public record ItemComponentPredicate(ComponentPredicate components, Map<ItemSubP
     };
 
     public static final Codec<ItemComponentPredicate> CODEC = MAP_CODEC.codec();
-    public static final ItemComponentPredicate EMPTY = new ItemComponentPredicate(ComponentPredicate.EMPTY, Map.of());
+    public static final ItemComponentPredicate EMPTY = new ItemComponentPredicate(ComponentMapPredicate.EMPTY, Map.of());
 
     @Override
     public boolean test(ItemStack stack) {
@@ -78,13 +78,13 @@ public record ItemComponentPredicate(ComponentPredicate components, Map<ItemSubP
         } else {
             Iterator var2 = this.subPredicates.values().iterator();
 
-            ItemSubPredicate itemSubPredicate;
+            ComponentPredicate itemSubPredicate;
             do {
                 if (!var2.hasNext()) {
                     return true;
                 }
 
-                itemSubPredicate = (ItemSubPredicate)var2.next();
+                itemSubPredicate = (ComponentPredicate) var2.next();
             } while(itemSubPredicate.test(stack));
 
             return false;

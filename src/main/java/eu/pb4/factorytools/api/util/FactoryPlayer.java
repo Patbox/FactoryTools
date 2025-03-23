@@ -4,6 +4,7 @@ import com.mojang.authlib.GameProfile;
 import eu.pb4.factorytools.mixin.player.PlayerEntityAccessor;
 import net.fabricmc.fabric.api.entity.FakePlayer;
 import net.minecraft.block.BlockState;
+import net.minecraft.entity.EntityEquipment;
 import net.minecraft.entity.EquipmentSlot;
 import net.minecraft.entity.ItemEntity;
 import net.minecraft.entity.player.PlayerEntity;
@@ -21,7 +22,7 @@ public class FactoryPlayer extends FakePlayer {
         super(world, gameProfile);
         this.setPos(pos.getX(), pos.getY(), pos.getZ());
         this.toolReference = toolReference;
-        ((PlayerEntityAccessor) this).setInventory(new FakeInventory(this));
+        ((PlayerEntityAccessor) this).setInventory(new FakeInventory(this, this.equipment));
     }
 
     @Override
@@ -73,13 +74,20 @@ public class FactoryPlayer extends FakePlayer {
     }
 
     public class FakeInventory extends PlayerInventory {
-        public FakeInventory(PlayerEntity player) {
-            super(player);
+        public FakeInventory(PlayerEntity player, EntityEquipment entityEquipment) {
+            super(player, entityEquipment);
         }
 
         @Override
-        public ItemStack getMainHandStack() {
+        public ItemStack getSelectedStack() {
             return FactoryPlayer.this.toolReference.get();
+        }
+
+        @Override
+        public ItemStack setSelectedStack(ItemStack stack) {
+            var old = FactoryPlayer.this.toolReference.get();
+            FactoryPlayer.this.toolReference.set(stack);
+            return old;
         }
 
         @Override
@@ -87,9 +95,11 @@ public class FactoryPlayer extends FakePlayer {
             FactoryPlayer.this.getWorld().spawnEntity(new ItemEntity(FactoryPlayer.this.getWorld(), FactoryPlayer.this.getX(), FactoryPlayer.this.getY(), FactoryPlayer.this.getZ(), stack));
         }
 
+
+        /*
         @Override
         public float getBlockBreakingSpeed(BlockState block) {
             return this.getMainHandStack().getMiningSpeedMultiplier(block);
-        }
+        }*/
     }
 }

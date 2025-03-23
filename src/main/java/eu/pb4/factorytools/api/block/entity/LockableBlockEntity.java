@@ -4,6 +4,7 @@ import net.minecraft.block.BlockState;
 import net.minecraft.block.entity.BlockEntity;
 import net.minecraft.block.entity.BlockEntityType;
 import net.minecraft.component.ComponentMap;
+import net.minecraft.component.ComponentsAccess;
 import net.minecraft.component.DataComponentTypes;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.inventory.ContainerLock;
@@ -45,8 +46,8 @@ public abstract class LockableBlockEntity extends BlockEntity {
     public void readNbt(NbtCompound nbt, RegistryWrapper.WrapperLookup lookup) {
         super.readNbt(nbt, lookup);
         this.lock = ContainerLock.fromNbt(nbt, lookup);
-        if (nbt.contains("CustomName", 8)) {
-            this.customName = Text.Serialization.fromJson(nbt.getString("CustomName"), lookup);
+        if (nbt.contains("CustomName")) {
+            this.customName = tryParseCustomName(nbt.get("CustomName"), lookup);
         }
         this.readNbtMixin(nbt, lookup);
     }
@@ -129,6 +130,7 @@ public abstract class LockableBlockEntity extends BlockEntity {
 
     @Override
     protected void readComponents(ComponentsAccess components) {
+
         this.lock = components.getOrDefault(DataComponentTypes.LOCK, this.lock);
         this.customName = components.get(DataComponentTypes.CUSTOM_NAME);
     }

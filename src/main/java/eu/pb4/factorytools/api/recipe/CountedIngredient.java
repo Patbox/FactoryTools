@@ -8,7 +8,6 @@ import eu.pb4.factorytools.api.util.ItemComponentPredicate;
 import net.minecraft.item.Item;
 import net.minecraft.item.ItemConvertible;
 import net.minecraft.item.ItemStack;
-import net.minecraft.predicate.ComponentPredicate;
 import net.minecraft.recipe.Ingredient;
 import net.minecraft.registry.entry.RegistryEntryList;
 import net.minecraft.registry.tag.TagKey;
