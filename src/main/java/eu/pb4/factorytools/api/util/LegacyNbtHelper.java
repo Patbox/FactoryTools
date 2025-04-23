@@ -1,6 +1,7 @@
 package eu.pb4.factorytools.api.util;
 
 import com.mojang.authlib.GameProfile;
+import com.mojang.serialization.Codec;
 import net.minecraft.nbt.NbtCompound;
 import net.minecraft.nbt.NbtElement;
 import net.minecraft.nbt.NbtIntArray;
@@ -19,9 +20,13 @@ public final class LegacyNbtHelper {
     private LegacyNbtHelper() {
     }
 
+    // Before 1.21.4 this class serialized using int array
+    // In 1.21.5 this was changed to Uuids.CODEC (string without dashes)
+    public static final Codec<UUID> UUID_CODEC = Codec.withAlternative(Uuids.INT_STREAM_CODEC, Uuids.CODEC);
+
     @Nullable
     public static GameProfile toGameProfile(NbtCompound nbt) {
-        UUID uUID = nbt.contains("Id") ? nbt.get("Id", Uuids.STRICT_CODEC).orElse(Util.NIL_UUID) : Util.NIL_UUID;
+        UUID uUID = nbt.contains("Id") ? nbt.get("Id", UUID_CODEC).orElse(Util.NIL_UUID) : Util.NIL_UUID;
         String string = nbt.getString("Name", "");
 
         try {
