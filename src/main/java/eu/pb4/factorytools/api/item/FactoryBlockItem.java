@@ -2,14 +2,15 @@ package eu.pb4.factorytools.api.item;
 
 import eu.pb4.polymer.core.api.block.PolymerBlock;
 import eu.pb4.polymer.core.api.item.PolymerItem;
+import eu.pb4.polymer.core.api.utils.PolymerUtils;
 import net.minecraft.block.Block;
+import net.minecraft.block.BlockState;
 import net.minecraft.item.*;
-import net.minecraft.network.packet.s2c.play.PlaySoundS2CPacket;
-import net.minecraft.registry.Registries;
 import net.minecraft.server.network.ServerPlayerEntity;
-import net.minecraft.sound.SoundCategory;
+import net.minecraft.server.world.ServerWorld;
 import net.minecraft.util.ActionResult;
-import net.minecraft.util.math.Vec3d;
+import net.minecraft.util.Hand;
+import net.minecraft.util.hit.BlockHitResult;
 import xyz.nucleoid.packettweaker.PacketContext;
 
 public class FactoryBlockItem extends BlockItem implements PolymerItem {
@@ -27,21 +28,19 @@ public class FactoryBlockItem extends BlockItem implements PolymerItem {
     }
 
     @Override
-    public ActionResult useOnBlock(ItemUsageContext context) {
-        var x = super.useOnBlock(context);
-        if (x == ActionResult.SUCCESS) {
-            if (context.getPlayer() instanceof ServerPlayerEntity player) {
-                var pos = Vec3d.ofCenter(context.getBlockPos().offset(context.getSide()));
-                var blockSoundGroup = this.getBlock().getDefaultState().getSoundGroup();
-                player.networkHandler.sendPacket(new PlaySoundS2CPacket(Registries.SOUND_EVENT.getEntry(this.getPlaceSound(this.getBlock().getDefaultState())), SoundCategory.BLOCKS, pos.x, pos.y, pos.z, (blockSoundGroup.getVolume() + 1.0F) / 2.0F, blockSoundGroup.getPitch() * 0.8F, context.getPlayer().getRandom().nextLong()));
-            }
-            return ActionResult.SUCCESS_SERVER;
-        }
-        return x;
+    public Item getPolymerItem(ItemStack stack, PacketContext context) {
+        return this.polymerItem;
     }
 
     @Override
-    public Item getPolymerItem(ItemStack stack, PacketContext context) {
-        return this.polymerItem;
+    public ActionResult useOnBlock(ItemUsageContext context) {
+        try (var x = PolymerUtils.ignorePlaySoundExclusion()) {
+            return super.useOnBlock(context);
+        }
+    }
+
+    @Override
+    public boolean isPolymerBlockInteraction(BlockState state, ServerPlayerEntity player, Hand hand, ItemStack stack, ServerWorld world, BlockHitResult blockHitResult, ActionResult actionResult) {
+        return actionResult.isAccepted();
     }
 }
