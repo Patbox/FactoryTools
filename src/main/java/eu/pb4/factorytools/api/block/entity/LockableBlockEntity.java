@@ -8,12 +8,13 @@ import net.minecraft.component.ComponentsAccess;
 import net.minecraft.component.DataComponentTypes;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.inventory.ContainerLock;
-import net.minecraft.nbt.NbtCompound;
-import net.minecraft.registry.RegistryWrapper;
 import net.minecraft.server.network.ServerPlayerEntity;
 import net.minecraft.sound.SoundCategory;
 import net.minecraft.sound.SoundEvents;
+import net.minecraft.storage.ReadView;
+import net.minecraft.storage.WriteView;
 import net.minecraft.text.Text;
+import net.minecraft.text.TextCodecs;
 import net.minecraft.util.math.BlockPos;
 import org.jetbrains.annotations.Nullable;
 
@@ -43,27 +44,28 @@ public abstract class LockableBlockEntity extends BlockEntity {
         }
     }
 
-    public void readNbt(NbtCompound nbt, RegistryWrapper.WrapperLookup lookup) {
-        super.readNbt(nbt, lookup);
-        this.lock = ContainerLock.fromNbt(nbt, lookup);
-        if (nbt.contains("CustomName")) {
-            this.customName = tryParseCustomName(nbt.get("CustomName"), lookup);
-        }
-        this.readNbtMixin(nbt, lookup);
+    @Override
+    public void readData(ReadView view) {
+        super.readData(view);
+        this.lock = ContainerLock.read(view);
+        this.customName = tryParseCustomName(view, "CustomName");
+
+        this.readDataMixin(view);
     }
 
-    private void readNbtMixin(NbtCompound nbt, RegistryWrapper.WrapperLookup lookup) {}
+    private void readDataMixin(ReadView view) {}
 
-    protected void writeNbt(NbtCompound nbt, RegistryWrapper.WrapperLookup lookup) {
-        super.writeNbt(nbt, lookup);
-        this.lock.writeNbt(nbt, lookup);
+    @Override
+    protected void writeData(WriteView view) {
+        super.writeData(view);
+        this.lock.write(view);
         if (this.customName != null) {
-            nbt.putString("CustomName", Text.Serialization.toJsonString(this.customName, lookup));
+            view.put("CustomName", TextCodecs.CODEC, this.customName);
         }
-        this.writeNbtMixin(nbt, lookup);
+        this.writeDataMixin(view);
     }
 
-    private void writeNbtMixin(NbtCompound nbt, RegistryWrapper.WrapperLookup lookup) {}
+    private void writeDataMixin(WriteView view) {}
 
     public Text getName() {
         return this.customName != null ? this.customName : this.getContainerName();
@@ -136,10 +138,10 @@ public abstract class LockableBlockEntity extends BlockEntity {
     }
 
     @Override
-    public void removeFromCopiedStackNbt(NbtCompound nbt) {
-        super.removeFromCopiedStackNbt(nbt);
-        nbt.remove("CustomName");
-        nbt.remove("Lock");
+    public void removeFromCopiedStackData(WriteView view) {
+        super.removeFromCopiedStackData(view);
+        view.remove("CustomName");
+        view.remove("Lock");
     }
 
     protected void createGui(ServerPlayerEntity playerEntity) {};

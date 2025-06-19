@@ -63,8 +63,13 @@ public record CountedIngredient(Optional<Ingredient> ingredient, ItemComponentPr
         return new CountedIngredient(Optional.of(Ingredient.ofItems(item)), ItemComponentPredicate.EMPTY, count, new ItemStack(remainder.asItem(), count));
     }
 
+    @Deprecated
     public static CountedIngredient fromTag(int count, RegistryEntryList<Item> tag) {
-        return new CountedIngredient(Optional.of(Ingredient.fromTag(tag)), ItemComponentPredicate.EMPTY, count, ItemStack.EMPTY);
+        return ofTag(count, tag);
+    }
+
+    public static CountedIngredient ofTag(int count, RegistryEntryList<Item> tag) {
+        return new CountedIngredient(Optional.of(Ingredient.ofTag(tag)), ItemComponentPredicate.EMPTY, count, ItemStack.EMPTY);
     }
 
     public boolean test(ItemStack stack) {
