@@ -3,6 +3,7 @@ package eu.pb4.factorytools.api.util;
 import eu.pb4.factorytools.api.virtualentity.ItemDisplayElementUtil;
 import eu.pb4.factorytools.impl.ModInit;
 import eu.pb4.factorytools.impl.ServerPlayNetExtF;
+import eu.pb4.polymer.core.api.utils.PolymerSyncedObject;
 import eu.pb4.polymer.resourcepack.api.PolymerResourcePackUtils;
 import eu.pb4.polymer.resourcepack.extras.api.ResourcePackExtras;
 import eu.pb4.polymer.resourcepack.extras.api.format.item.ItemAsset;
@@ -15,6 +16,7 @@ import net.minecraft.component.DataComponentTypes;
 import net.minecraft.component.type.CustomModelDataComponent;
 import net.minecraft.item.ItemStack;
 import net.minecraft.item.Items;
+import net.minecraft.registry.Registries;
 import net.minecraft.server.network.ServerPlayerEntity;
 import net.minecraft.util.Identifier;
 import net.minecraft.util.math.BlockPos;
@@ -40,7 +42,7 @@ public class VirtualDestroyStage extends ElementHolder {
     public static boolean updateState(ServerPlayerEntity player, BlockPos pos, BlockState state, int i) {
         var self = ((ServerPlayNetExtF) player.networkHandler).factorytools$getVirtualDestroyStage();
 
-        if (i == -1 || !(state.getBlock() instanceof Marker)) {
+        if (i == -1 || !(state.getBlock() instanceof Marker || PolymerSyncedObject.getSyncedObject(Registries.BLOCK, state.getBlock()) instanceof Marker)) {
             self.setState(-1);
             if (self.getAttachment() != null) {
                 self.destroy();

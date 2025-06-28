@@ -5,6 +5,7 @@
   "compatibilityLevel": "JAVA_21",
   "plugin": "eu.pb4.factorytools.mixin.FactoryToolsMixinConfigPlugin",
   "mixins": [
+    "BlockMixin",
     "ItemPredicateBuilderMixin",
     "ItemPredicateMixin",
     "ItemUsageContextAccessor",
