@@ -7,6 +7,8 @@ import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.nbt.NbtCompound;
 import net.minecraft.registry.RegistryWrapper;
 import net.minecraft.server.network.ServerPlayerEntity;
+import net.minecraft.storage.ReadView;
+import net.minecraft.storage.WriteView;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Overwrite;
 import org.spongepowered.asm.mixin.Unique;
@@ -21,22 +23,21 @@ public abstract class htm_LockableBlockEntityMixin implements LockableObject {
     public Optional<HTMContainerLock> htmContainerLock = Optional.empty();
 
     @Overwrite
-    private void readNbtMixin(NbtCompound nbt, RegistryWrapper.WrapperLookup lookup) {
-        htmContainerLock = nbt.contains("htm_lock") ? nbt.get("htm_lock", HTMContainerLock.CODEC) : Optional.empty();
+    private void readDataMixin(ReadView view) {
+        htmContainerLock = view.read("htm_lock", HTMContainerLock.CODEC);
     }
 
     @Overwrite
-    private void writeNbtMixin(NbtCompound nbt, RegistryWrapper.WrapperLookup lookup) {
+    private void writeDataMixin(WriteView view) {
         if (htmContainerLock.isPresent()) {
-            nbt.put("htm_lock", HTMContainerLock.CODEC, this.htmContainerLock.get());
+            view.put("htm_lock", HTMContainerLock.CODEC, this.htmContainerLock.get());
         }
     }
-
 
     @Overwrite
     protected boolean checkUnlockedMixin(PlayerEntity player, boolean display) {
         return player instanceof ServerPlayerEntity serverPlayer
-                && (display ? htmContainerLock.isEmpty() || htmContainerLock.get().canOpen(serverPlayer) : canOpen(serverPlayer));
+                && (display ? htmContainerLock.isEmpty() || htmContainerLock.get().canOpen(serverPlayer) : canOpenX(serverPlayer));
     }
 
     @Overwrite(remap = false)
@@ -45,7 +46,7 @@ public abstract class htm_LockableBlockEntityMixin implements LockableObject {
     }
 
     @Unique
-    private boolean canOpen(ServerPlayerEntity player) {
+    private boolean canOpenX(ServerPlayerEntity player) {
         if (htmContainerLock.isEmpty()) return true;
         if (htmContainerLock.get().canOpen(player)) return true;
         return htmContainerLock.get().isOwner(player);
