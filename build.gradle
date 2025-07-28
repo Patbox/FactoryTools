@@ -59,6 +59,10 @@ dependencies {
 	modImplementation 'eu.pb4:polymer-resource-pack:0.13.8+1.21.8'
 	modImplementation 'eu.pb4:polymer-resource-pack-extras:0.13.8+1.21.8'
 	modImplementation 'eu.pb4:polymer-virtual-entity:0.13.8+1.21.8'
+
+	modImplementation 'eu.pb4:polymer-blocks:0.13.8+1.21.8'
+	modImplementation 'eu.pb4:polymer-autohost:0.13.8+1.21.8'
+
 	modCompileOnly("maven.modrinth:htm:1.1.17")
 
 

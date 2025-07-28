@@ -6,11 +6,9 @@ import eu.pb4.polymer.resourcepack.extras.api.format.atlas.AtlasAsset;
 import eu.pb4.polymer.resourcepack.extras.api.format.atlas.SingleAtlasSource;
 import eu.pb4.polymer.resourcepack.extras.api.format.model.ModelAsset;
 import eu.pb4.polymer.resourcepack.extras.api.format.model.ModelElement;
+import it.unimi.dsi.fastutil.floats.FloatList;
 import net.minecraft.util.Identifier;
-import net.minecraft.util.math.Direction;
-import net.minecraft.util.math.MathHelper;
-import net.minecraft.util.math.Vec3d;
-import org.joml.Vector2f;
+import net.minecraft.util.math.*;
 
 import java.util.EnumMap;
 import java.util.List;
@@ -23,23 +21,8 @@ public class ModelModifiers {
         return new ModelAsset(asset.parent(), asset.elements().map(x -> x.stream()
                 .map(element -> new ModelElement(element.from().subtract(expansion), element.to().add(expansion),
                         element.faces().entrySet().stream().map(face -> {
-                            var uv = face.getValue().uv();
-                            if (uv.isEmpty()) {
-                                Vector2f uv1, uv2;
-                                if (face.getKey().getAxis() == Direction.Axis.Y) {
-                                    uv1 = new Vector2f((float) element.from().getX(), (float) element.from().getZ());
-                                    uv2 = new Vector2f((float) element.to().getX(), (float) element.to().getZ());
-                                } else {
-                                    uv1 = new Vector2f((float) element.from().getComponentAlongAxis(face.getKey().rotateYClockwise().getAxis()), 16 - (float) element.to().getY());
-                                    uv2 = new Vector2f((float) element.to().getComponentAlongAxis(face.getKey().rotateYClockwise().getAxis()), 16 - (float) element.from().getY());
-                                }
-
-                                uv = List.of(Math.clamp(Math.min(uv1.x, uv2.x), 0, 16),
-                                        Math.clamp(Math.min(uv1.y, uv2.y), 0, 16),
-                                        Math.clamp(Math.max(uv1.x, uv2.x), 0, 16),
-                                        Math.clamp(Math.max(uv1.y, uv2.y), 0, 16));
-
-                                return Map.entry(face.getKey(), new ModelElement.Face(uv, face.getValue().texture(), face.getValue().cullface(),
+                            if (face.getValue().uv().isEmpty()) {
+                                return Map.entry(face.getKey(), new ModelElement.Face(getDefaultUV(element.from(), element.to(), face.getKey()), face.getValue().texture(), face.getValue().cullface(),
                                         face.getValue().rotation(),
                                         face.getValue().tintIndex()));
                             }
@@ -55,20 +38,25 @@ public class ModelModifiers {
 
     public static ModelElement rotateAndExpandElement(ModelElement element, Vec3d expand, int xrot, int yrot) {
         Vec3d from, to;
-
         {
-            var tmp1 = element.from().subtract(8).rotateX(-xrot * MathHelper.RADIANS_PER_DEGREE).rotateY(-yrot * MathHelper.RADIANS_PER_DEGREE).add(8);
-            var tmp2 = element.to().subtract(8).rotateX(-xrot * MathHelper.RADIANS_PER_DEGREE).rotateY(-yrot * MathHelper.RADIANS_PER_DEGREE).add(8);
+            var tmp1 = element.from().subtract(8)
+                    .rotateX(MathHelper.RADIANS_PER_DEGREE * xrot)
+                    .rotateY(-MathHelper.RADIANS_PER_DEGREE * yrot)
+                    .add(8);
+            var tmp2 = element.to().subtract(8)
+                    .rotateX(MathHelper.RADIANS_PER_DEGREE * xrot)
+                    .rotateY(-MathHelper.RADIANS_PER_DEGREE * yrot)
+                    .add(8);
 
-            from = new Vec3d(Math.min(tmp1.x, tmp2.x), Math.min(tmp1.y, tmp2.y), Math.min(tmp1.z, tmp2.z)).subtract(expand);
-            to = new Vec3d(Math.max(tmp1.x, tmp2.x), Math.max(tmp1.y, tmp2.y), Math.max(tmp1.z, tmp2.z)).add(expand);
+            from = new Vec3d(Math.min(tmp1.x, tmp2.x), Math.min(tmp1.y, tmp2.y), Math.min(tmp1.z, tmp2.z));
+            to = new Vec3d(Math.max(tmp1.x, tmp2.x), Math.max(tmp1.y, tmp2.y), Math.max(tmp1.z, tmp2.z));
         }
 
         var faces = new EnumMap<Direction, ModelElement.Face>(Direction.class);
 
         for (var face : element.faces().entrySet()) {
             var dir = face.getKey();
-
+            var dirx = face.getKey();
             {
                 int tmp;
                 if (dir.getAxis() != Direction.Axis.X) {
@@ -78,6 +66,7 @@ public class ModelModifiers {
                         tmp -= 90;
                     }
                 }
+                dirx = dir;
                 if (dir.getAxis() != Direction.Axis.Y) {
                     tmp = (360 + yrot) % 360;
                     while (tmp > 0) {
@@ -90,35 +79,20 @@ public class ModelModifiers {
             var uv = face.getValue().uv();
 
             if (uv.isEmpty()) {
-                Vector2f uv1, uv2;
-                if (face.getKey().getAxis() == Direction.Axis.Y) {
-                    uv1 = new Vector2f((float) from.getX(), (float) from.getZ());
-                    uv2 = new Vector2f((float) to.getX(), (float) to.getZ());
-                } else {
-                    uv1 = new Vector2f((float) from.getComponentAlongAxis(face.getKey().rotateYClockwise().getAxis()), 16 - (float) to.getY());
-                    uv2 = new Vector2f((float) to.getComponentAlongAxis(face.getKey().rotateYClockwise().getAxis()), 16 - (float) from.getY());
-                }
-
-                uv = List.of(Math.clamp(Math.min(uv1.x, uv2.x), 0, 16),
-                        Math.clamp(Math.min(uv1.y, uv2.y), 0, 16),
-                        Math.clamp(Math.max(uv1.x, uv2.x), 0, 16),
-                        Math.clamp(Math.max(uv1.y, uv2.y), 0, 16));
-
-                faces.put(dir, new ModelElement.Face(uv, face.getValue().texture(), face.getValue().cullface(), face.getValue().rotation(), face.getValue().tintIndex()));
+                uv = getDefaultUV(from, to, dir);
             } else {
-                int tmp;
-                int rot = face.getValue().rotation();
-                if (face.getKey().getAxis() == Direction.Axis.Y) {
-                    tmp = yrot;
-                    if (yrot == 90 || yrot == 270) {
-                        rot = (rot + 180) % 360;
-                        tmp += 180;
-                    }
-                } else {
-                    tmp = 360 - xrot;
+                var rot = 0;
+
+                if (face.getKey().getAxis() == Direction.Axis.X) {
+                    rot += xrot;
                 }
 
-                while (tmp > 0) {
+                if (dirx.getAxis() == Direction.Axis.Y) {
+                    rot -= yrot;
+                }
+                rot += 360;
+
+                while (rot > 0) {
                     var u1 = uv.get(0);
                     var v1 = uv.get(1);
 
@@ -126,15 +100,21 @@ public class ModelModifiers {
                     var v2 = uv.get(3);
 
                     uv = List.of(v2, 16-u1, v1, 16-u2);
-                    tmp -= 90;
+                    rot -= 90;
                 }
 
-                faces.put(dir, new ModelElement.Face(uv, face.getValue().texture(), face.getValue().cullface(), rot, face.getValue().tintIndex()));
+                uv = List.of(Math.clamp(Math.min(uv.get(0), uv.get(2)), 0, 16),
+                        Math.clamp(Math.min(uv.get(1), uv.get(3)), 0, 16),
+                        Math.clamp(Math.max(uv.get(0), uv.get(2)), 0, 16),
+                        Math.clamp(Math.max(uv.get(1), uv.get(3)), 0, 16));
+
             }
+
+            faces.put(dir, new ModelElement.Face(uv, face.getValue().texture(), face.getValue().cullface(), face.getValue().rotation(), face.getValue().tintIndex()));
         }
 
 
-        return new ModelElement(from, to, faces, element.rotation(), element.shade(), element.lightEmission());
+        return new ModelElement(from.subtract(expand), to.add(expand), faces, element.rotation(), element.shade(), element.lightEmission());
     }
 
     public static void createSignModel(ResourcePackBuilder builder, String namespace, String name, AtlasAsset.Builder atlas) {
@@ -156,5 +136,19 @@ public class ModelModifiers {
         builder.addData(AssetPaths.model(Identifier.of(namespace, "block_sign/" + name + "_wall_hanging_sign.json")), ModelAsset.builder()
                 .parent(Identifier.of("factorytools", "block_sign/template_wall_hanging_sign"))
                 .texture("sign", textureHanging.toString()).build());
+    }
+
+
+    public static FloatList getDefaultUV(Vec3d from, Vec3d to, Direction facing) {
+        return switch (facing) {
+            case DOWN -> FloatList.of((float) from.x, 16.0F - (float) to.z, (float) to.x, 16.0F - (float) from.z);
+            case UP -> FloatList.of((float) from.x, (float) from.z, (float) to.x, (float) to.z);
+            case NORTH ->
+                    FloatList.of(16.0F - (float) to.x, 16.0F - (float) to.y, 16.0F - (float) from.x, 16.0F - (float) from.y);
+            case SOUTH -> FloatList.of((float) from.x, 16.0F - (float) to.y, (float) to.x, 16.0F - (float) from.y);
+            case WEST -> FloatList.of((float) from.z, 16.0F - (float) to.y, (float) to.z, 16.0F - (float) from.y);
+            case EAST ->
+                    FloatList.of(16.0F - (float) to.z, 16.0F - (float) to.y, 16.0F - (float) from.z, 16.0F - (float) from.y);
+        };
     }
 }

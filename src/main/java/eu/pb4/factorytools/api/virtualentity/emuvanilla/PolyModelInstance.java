@@ -61,7 +61,7 @@ public record PolyModelInstance<T extends EntityModel<?>>(T model, TexturedModel
             var modelId = texture.withSuffixedPath("/part_" + (id++));
             var model = ModelAsset.builder();
             model.texture("txt", texture.toString());
-            model.texture("empty", "enderscape-patch:block/empty");
+            model.texture("empty", "factorytools:block/empty");
             model.texture("particle", "#txt");
 
             part.forEachCuboid(cuboid -> {

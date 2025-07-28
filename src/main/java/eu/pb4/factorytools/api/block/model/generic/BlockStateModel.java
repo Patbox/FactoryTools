@@ -64,6 +64,7 @@ public class BlockStateModel extends BlockModel {
                 element.setItemDisplayContext(ItemDisplayContext.NONE);
                 element.setYaw(180);
                 this.setupElement(element, i);
+                this.setupElement(element, i, pos);
                 newModel = true;
                 this.modelElements.add(element);
             } else {
@@ -83,6 +84,9 @@ public class BlockStateModel extends BlockModel {
         }
     }
 
-    protected void setupElement(ItemDisplayElement element, int i) {
+    @Deprecated
+    protected void setupElement(ItemDisplayElement element, int i) {}
+
+    protected void setupElement(ItemDisplayElement element, int i, BlockPos pos) {
     }
 }

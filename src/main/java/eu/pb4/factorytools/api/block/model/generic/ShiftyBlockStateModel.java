@@ -24,8 +24,7 @@ public class ShiftyBlockStateModel extends BlockStateModel {
     }
 
     @Override
-    protected void setupElement(ItemDisplayElement element, int i) {
-        var pos = this.blockPos();
+    protected void setupElement(ItemDisplayElement element, int i, BlockPos pos) {
         i = Math.abs((i + pos.getX() + pos.getY() + pos.getZ()) % 5);
         element.setOffset(new Vec3d(i / 5000f, i / 5000f, i / 5000f).subtract(5 / 5000f / 2));
     }

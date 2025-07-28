@@ -22,7 +22,6 @@ public class ModelHandle<T extends Entity> {
     private final Vec3d offset;
     private PolyModelInstance<EntityModel<T>> model;
     private boolean hurt = false;
-
     private boolean hidden = false;
 
     public <X extends EntityModel<T>> ModelHandle(ElementHolder holder, PolyModelInstance<X> model, EntityDimensions dimensions, Vec3d offset) {

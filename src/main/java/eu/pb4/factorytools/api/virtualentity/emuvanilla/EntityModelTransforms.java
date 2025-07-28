@@ -16,6 +16,10 @@ public class EntityModelTransforms {
     }
 
     public static void livingEntityTransform(LivingEntity entity, Matrix4f mat, Consumer<Matrix4f> scale) {
+        livingEntityTransform(entity, mat, EntityValueExtraction.getBodyYaw(entity), scale);
+    }
+
+    public static void livingEntityTransform(LivingEntity entity, Matrix4f mat, float bodyYaw, Consumer<Matrix4f> scale) {
         if (entity.isInPose(EntityPose.SLEEPING)) {
             Direction direction = entity.getSleepingDirection();
             if (direction != null) {
@@ -26,7 +30,7 @@ public class EntityModelTransforms {
 
         float scaleVal = entity.getScale();
         mat.scale(scaleVal);
-        setupTransforms(entity, mat, EntityValueExtraction.getBodyYaw(entity), scaleVal);
+        setupTransforms(entity, mat, bodyYaw, scaleVal);
         mat.scale(-1.0F, -1.0F, 1.0F);
         scale.accept(mat);
         mat.translate(0.0F, -1.501F, 0.0F);
