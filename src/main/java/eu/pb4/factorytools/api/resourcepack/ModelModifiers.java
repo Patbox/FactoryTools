@@ -22,7 +22,7 @@ public class ModelModifiers {
                 .map(element -> new ModelElement(element.from().subtract(expansion), element.to().add(expansion),
                         element.faces().entrySet().stream().map(face -> {
                             if (face.getValue().uv().isEmpty()) {
-                                return Map.entry(face.getKey(), new ModelElement.Face(getDefaultUV(element.from(), element.to(), face.getKey()), face.getValue().texture(), face.getValue().cullface(),
+                                return Map.entry(face.getKey(), new ModelElement.Face(getClampedDefaultUV(element.from(), element.to(), face.getKey()), face.getValue().texture(), face.getValue().cullface(),
                                         face.getValue().rotation(),
                                         face.getValue().tintIndex()));
                             }
@@ -79,7 +79,7 @@ public class ModelModifiers {
             var uv = face.getValue().uv();
 
             if (uv.isEmpty()) {
-                uv = getDefaultUV(from, to, dir);
+                uv = getClampedDefaultUV(from, to, dir);
             } else {
                 var rot = 0;
 
@@ -138,6 +138,15 @@ public class ModelModifiers {
                 .texture("sign", textureHanging.toString()).build());
     }
 
+    public static FloatList getClampedDefaultUV(Vec3d from, Vec3d to, Direction facing) {
+        var list = getDefaultUV(from, to, facing);
+        return FloatList.of(
+                Math.clamp(list.getFloat(0), 0, 16),
+                Math.clamp(list.getFloat(1), 0, 16),
+                Math.clamp(list.getFloat(2), 0, 16),
+                Math.clamp(list.getFloat(3), 0, 16)
+        );
+    }
 
     public static FloatList getDefaultUV(Vec3d from, Vec3d to, Direction facing) {
         return switch (facing) {

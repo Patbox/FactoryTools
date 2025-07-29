@@ -17,6 +17,7 @@ import net.minecraft.predicate.block.BlockStatePredicate;
 import net.minecraft.state.property.Property;
 import net.minecraft.util.Identifier;
 import net.minecraft.util.Pair;
+import net.minecraft.util.collection.Pool;
 import net.minecraft.util.collection.Weighted;
 import net.minecraft.util.collection.Weighting;
 import net.minecraft.util.math.MathHelper;
@@ -224,7 +225,7 @@ public class BlockStateModelManager {
         }
     }
 
-    private record WeightedGetter(List<Weighted<ModelData>> data, int weightedSum) implements ModelGetter {
+    private record WeightedGetter(Pool<ModelData> data, int weightedSum) implements ModelGetter {
         public static ModelGetter create(List<ModelData> data) {
             var list = new ArrayList<Weighted<ModelData>>();
             for (var d : data) {
@@ -232,12 +233,12 @@ public class BlockStateModelManager {
             }
             var x = Weighting.getWeightSum(list, Weighted::weight);
 
-            return new WeightedGetter(list, x);
+            return new WeightedGetter(Pool.of(list), x);
         }
 
         @Override
         public ModelData getModel(Random random) {
-            return Weighting.getAt(this.data, Math.abs((int) random.nextLong()) % this.weightedSum, Weighted::weight).orElse(this.data.get(0)).value();
+            return this.data.get(random);
         }
     }
     public record ModelData(ItemStack stack, Quaternionfc quaternionfc, int weight) {}
