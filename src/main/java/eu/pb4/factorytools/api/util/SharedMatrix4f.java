@@ -13,6 +13,6 @@ public final class SharedMatrix4f {
     }
 
     public Matrix4f main() {
-        return (CompatStatus.C2ME ? threaded.get() : main).identity();
+        return (CompatStatus.BROKEN_THREADING ? threaded.get() : main).identity();
     }
 }

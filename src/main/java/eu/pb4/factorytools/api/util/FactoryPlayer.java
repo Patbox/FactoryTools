@@ -92,7 +92,7 @@ public class FactoryPlayer extends FakePlayer {
 
         @Override
         public void offer(ItemStack stack, boolean notifiesClient) {
-            FactoryPlayer.this.getWorld().spawnEntity(new ItemEntity(FactoryPlayer.this.getWorld(), FactoryPlayer.this.getX(), FactoryPlayer.this.getY(), FactoryPlayer.this.getZ(), stack));
+            FactoryPlayer.this.getEntityWorld().spawnEntity(new ItemEntity(FactoryPlayer.this.getEntityWorld(), FactoryPlayer.this.getX(), FactoryPlayer.this.getY(), FactoryPlayer.this.getZ(), stack));
         }
 
 

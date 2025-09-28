@@ -1,6 +1,8 @@
 package eu.pb4.factorytools.api.util;
 
+import com.google.common.collect.ImmutableMultimap;
 import com.mojang.authlib.GameProfile;
+import com.mojang.authlib.properties.PropertyMap;
 import com.mojang.serialization.Codec;
 import net.minecraft.nbt.NbtCompound;
 import net.minecraft.nbt.NbtElement;
@@ -30,7 +32,7 @@ public final class LegacyNbtHelper {
         String string = nbt.getString("Name", "");
 
         try {
-            GameProfile gameProfile = new GameProfile(uUID, string);
+            var map = ImmutableMultimap.<String, com.mojang.authlib.properties.Property>builder();
             if (nbt.contains("Properties")) {
                 NbtCompound nbtCompound = nbt.getCompoundOrEmpty("Properties");
 
@@ -41,36 +43,35 @@ public final class LegacyNbtHelper {
                         NbtCompound nbtCompound2 = nbtList.getCompoundOrEmpty(i);
                         String string3 = nbtCompound2.getString("Value", "");
                         if (nbtCompound2.contains("Signature")) {
-                            gameProfile.getProperties().put(string2, new com.mojang.authlib.properties.Property(string2, string3, nbtCompound2.getString("Signature", null)));
+                            map.put(string2, new com.mojang.authlib.properties.Property(string2, string3, nbtCompound2.getString("Signature", null)));
                         } else {
-                            gameProfile.getProperties().put(string2, new com.mojang.authlib.properties.Property(string2, string3));
+                            map.put(string2, new com.mojang.authlib.properties.Property(string2, string3));
                         }
                     }
                 }
             }
-
-            return gameProfile;
+            return new GameProfile(uUID, string, new PropertyMap(map.build()));
         } catch (Throwable var11) {
             return null;
         }
     }
 
     public static NbtCompound writeGameProfile(NbtCompound nbt, GameProfile profile) {
-        if (!profile.getName().isEmpty()) {
-            nbt.putString("Name", profile.getName());
+        if (!profile.name().isEmpty()) {
+            nbt.putString("Name", profile.name());
         }
 
-        if (!profile.getId().equals(Util.NIL_UUID)) {
-            nbt.put("Id", Uuids.CODEC, profile.getId());
+        if (!profile.id().equals(Util.NIL_UUID)) {
+            nbt.put("Id", Uuids.CODEC, profile.id());
         }
 
-        if (!profile.getProperties().isEmpty()) {
+        if (!profile.properties().isEmpty()) {
             NbtCompound nbtCompound = new NbtCompound();
 
-            for (String string : profile.getProperties().keySet()) {
+            for (String string : profile.properties().keySet()) {
                 NbtList nbtList = new NbtList();
 
-                for (com.mojang.authlib.properties.Property property : profile.getProperties().get(string)) {
+                for (com.mojang.authlib.properties.Property property : profile.properties().get(string)) {
                     NbtCompound nbtCompound2 = new NbtCompound();
                     nbtCompound2.putString("Value", property.value());
                     String string2 = property.signature();

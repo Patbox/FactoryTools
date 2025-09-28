@@ -1,5 +1,5 @@
 plugins {
-	id 'fabric-loom' version '1.10.+'
+	id 'fabric-loom' version '1.11.+'
 	id 'maven-publish'
 }
 
@@ -55,13 +55,13 @@ dependencies {
 	modLocalRuntime "net.fabricmc.fabric-api:fabric-api:${project.fabric_version}"
 	modCompileOnly "net.fabricmc.fabric-api:fabric-api:${project.fabric_version}"
 
-	modImplementation 'eu.pb4:polymer-core:0.13.8+1.21.8'
-	modImplementation 'eu.pb4:polymer-resource-pack:0.13.8+1.21.8'
-	modImplementation 'eu.pb4:polymer-resource-pack-extras:0.13.8+1.21.8'
-	modImplementation 'eu.pb4:polymer-virtual-entity:0.13.8+1.21.8'
+	modImplementation "eu.pb4:polymer-core:${project.polymer_version}"
+	modImplementation "eu.pb4:polymer-resource-pack:${project.polymer_version}"
+	modImplementation "eu.pb4:polymer-resource-pack-extras:${project.polymer_version}"
+	modImplementation "eu.pb4:polymer-virtual-entity:${project.polymer_version}"
 
-	modImplementation 'eu.pb4:polymer-blocks:0.13.8+1.21.8'
-	modImplementation 'eu.pb4:polymer-autohost:0.13.8+1.21.8'
+	modImplementation "eu.pb4:polymer-blocks:${project.polymer_version}"
+	modImplementation "eu.pb4:polymer-autohost:${project.polymer_version}"
 
 	modCompileOnly("maven.modrinth:htm:1.1.17")
 

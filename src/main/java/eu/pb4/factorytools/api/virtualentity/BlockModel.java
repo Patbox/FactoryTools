@@ -39,7 +39,7 @@ public class BlockModel extends ElementHolder {
     }
 
     protected double squaredDistance(ServerPlayNetworkHandler player) {
-        return this.getPos().squaredDistanceTo(player.player.getPos());
+        return this.getPos().squaredDistanceTo(player.player.getEntityPos());
     }
 
     @Nullable

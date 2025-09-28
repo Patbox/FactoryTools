@@ -208,6 +208,6 @@ public class LodItemDisplayElement extends ItemDisplayElement {
     }
 
     protected double getSquaredDistance(ServerPlayNetworkHandler player) {
-        return (Objects.requireNonNull(this.getHolder())).getPos().squaredDistanceTo(player.player.getPos());
+        return (Objects.requireNonNull(this.getHolder())).getPos().squaredDistanceTo(player.player.getEntityPos());
     }
 }

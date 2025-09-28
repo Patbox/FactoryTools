@@ -12,10 +12,7 @@ import eu.pb4.polymer.virtualentity.api.ElementHolder;
 import eu.pb4.polymer.virtualentity.api.attachment.ChunkAttachment;
 import eu.pb4.polymer.virtualentity.api.elements.ItemDisplayElement;
 import net.minecraft.block.BlockState;
-import net.minecraft.component.DataComponentTypes;
-import net.minecraft.component.type.CustomModelDataComponent;
 import net.minecraft.item.ItemStack;
-import net.minecraft.item.Items;
 import net.minecraft.registry.Registries;
 import net.minecraft.server.network.ServerPlayerEntity;
 import net.minecraft.util.Identifier;
@@ -42,7 +39,8 @@ public class VirtualDestroyStage extends ElementHolder {
     public static boolean updateState(ServerPlayerEntity player, BlockPos pos, BlockState state, int i) {
         var self = ((ServerPlayNetExtF) player.networkHandler).factorytools$getVirtualDestroyStage();
 
-        if (i == -1 || !(state.getBlock() instanceof Marker || PolymerSyncedObject.getSyncedObject(Registries.BLOCK, state.getBlock()) instanceof Marker)) {
+        if (i == -1 || !((state.getBlock() instanceof Marker marker && marker.showCustomMiningStageMarker(state, pos, player))
+                || (PolymerSyncedObject.getSyncedObject(Registries.BLOCK, state.getBlock()) instanceof Marker marker2 && marker2.showCustomMiningStageMarker(state, pos, player)))) {
             self.setState(-1);
             if (self.getAttachment() != null) {
                 self.destroy();
@@ -53,7 +51,7 @@ public class VirtualDestroyStage extends ElementHolder {
         var vecPos = Vec3d.ofCenter(pos);
 
         if (self.getAttachment() == null || !self.getAttachment().getPos().equals(vecPos)) {
-            ChunkAttachment.of(self, player.getWorld(), vecPos);
+            ChunkAttachment.of(self, player.getEntityWorld(), vecPos);
         }
 
         self.setState(i);
@@ -102,5 +100,9 @@ public class VirtualDestroyStage extends ElementHolder {
         });
     }
 
-    public interface Marker {}
+    public interface Marker {
+        default boolean showCustomMiningStageMarker(BlockState state, BlockPos pos, ServerPlayerEntity player) {
+            return true;
+        }
+    }
 }
