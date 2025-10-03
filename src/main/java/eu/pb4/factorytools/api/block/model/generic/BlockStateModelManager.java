@@ -112,7 +112,7 @@ public class BlockStateModelManager {
 
             if (part.when().and().isPresent()) {
                 var predicate = BlockStatePredicate.forBlock(block);
-                for (var x : part.when().or().get()) {
+                for (var x : part.when().and().get()) {
                     applyWhenMultipart(predicate, block, x);
                 }
                 preds.add(predicate);
