@@ -63,7 +63,7 @@ dependencies {
 	modImplementation "eu.pb4:polymer-blocks:${project.polymer_version}"
 	modImplementation "eu.pb4:polymer-autohost:${project.polymer_version}"
 
-	modCompileOnly("maven.modrinth:htm:1.1.17")
+	modCompileOnly("maven.modrinth:htm:1.2.0")
 
 
 	// PSA: Some older mods, compiled on Loom 0.2.1, might have outdated Maven POMs.
