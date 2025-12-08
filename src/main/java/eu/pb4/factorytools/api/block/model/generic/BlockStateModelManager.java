@@ -17,6 +17,7 @@ import net.minecraft.predicate.block.BlockStatePredicate;
 import net.minecraft.state.property.Property;
 import net.minecraft.util.Identifier;
 import net.minecraft.util.Pair;
+import net.minecraft.util.Util;
 import net.minecraft.util.collection.Pool;
 import net.minecraft.util.collection.Weighted;
 import net.minecraft.util.collection.Weighting;
@@ -30,17 +31,18 @@ import org.slf4j.LoggerFactory;
 import java.nio.charset.StandardCharsets;
 import java.util.*;
 import java.util.function.BiConsumer;
+import java.util.function.Predicate;
 
 public class BlockStateModelManager {
+    public static final Map<String, Map<String, List<StateModelVariant>>> UV_LOCKED_MODELS = new HashMap<>();
     private static final Logger LOGGER = LoggerFactory.getLogger(BlockStateModelManager.class);
-
     private static final Map<BlockState, List<ModelGetter>> MAP = new HashMap<>();
     private static final Map<BlockState, ParticleEffect> PARTICLE = new HashMap<>();
-    public static final Map<String, Map<String, List<StateModelVariant>>> UV_LOCKED_MODELS = new HashMap<>();
 
     public static List<ModelGetter> get(BlockState state) {
         return MAP.getOrDefault(state, List.of());
     }
+
     public static ParticleEffect getParticle(BlockState state) {
         return PARTICLE.getOrDefault(state, ParticleTypes.ANGRY_VILLAGER);
     }
@@ -70,25 +72,23 @@ public class BlockStateModelManager {
             }
 
             if (modelDef.multipart().isPresent()) {
-                var list = new ArrayList<Pair<List<BlockStatePredicate>, List<ModelData>>>();
+                var list = new ArrayList<Pair<Predicate<BlockState>, List<ModelData>>>();
                 parseMultipart(block, modelDef.multipart().get(), list);
 
                 for (var pair : list) {
                     for (var state : block.getStateManager().getStates()) {
-                        for (var pred : pair.getLeft()) {
-                            if (pred.test(state)) {
-                                var objects = new ArrayList<ModelGetter>();
-                                if (MAP.containsKey(state)) {
-                                    objects.addAll(MAP.get(state));
-                                }
-                                objects.add(ModelGetter.of(pair.getRight()));
-                                MAP.put(state, objects);
-                                if (!objects.isEmpty() && !PARTICLE.containsKey(state)) {
-                                    PARTICLE.put(state, new ItemStackParticleEffect(ParticleTypes.ITEM, objects.getFirst().getModel(rand).stack));
-                                }
-
-                                break;
+                        if (pair.getLeft().test(state)) {
+                            var objects = new ArrayList<ModelGetter>();
+                            if (MAP.containsKey(state)) {
+                                objects.addAll(MAP.get(state));
                             }
+                            objects.add(ModelGetter.of(pair.getRight()));
+                            MAP.put(state, objects);
+                            if (!objects.isEmpty() && !PARTICLE.containsKey(state)) {
+                                PARTICLE.put(state, new ItemStackParticleEffect(ParticleTypes.ITEM, objects.getFirst().getModel(rand).stack));
+                            }
+
+                            break;
                         }
                     }
                 }
@@ -98,34 +98,15 @@ public class BlockStateModelManager {
         }
     }
 
-    private static void parseMultipart(Block block, List<StateMultiPartDefinition> multiPartDefinition, ArrayList<Pair<List<BlockStatePredicate>, List<ModelData>>> list) {
+    private static void parseMultipart(Block block, List<StateMultiPartDefinition> multiPartDefinition, ArrayList<Pair<Predicate<BlockState>, List<ModelData>>> list) {
         for (var part : multiPartDefinition) {
-            var preds = new ArrayList<BlockStatePredicate>();
+            Predicate<BlockState> preds;
 
-            if (part.when().or().isPresent()) {
-                for (var x : part.when().or().get()) {
-                    var predicate = BlockStatePredicate.forBlock(block);
-                    applyWhenMultipart(predicate, block, x);
-                    preds.add(predicate);
-                }
-            }
-
-            if (part.when().and().isPresent()) {
-                var predicate = BlockStatePredicate.forBlock(block);
-                for (var x : part.when().and().get()) {
-                    applyWhenMultipart(predicate, block, x);
-                }
-                preds.add(predicate);
-            }
-
-            if (part.when().base().isPresent()) {
-                var predicate = BlockStatePredicate.forBlock(block);
-                applyWhenMultipart(predicate, block, part.when().base().get());
-                preds.add(predicate);
-            }
-
-            if (preds.isEmpty()) {
-                preds.add(BlockStatePredicate.forBlock(block));
+            if (part.when().isEmpty()) {
+                preds = BlockStatePredicate.forBlock(block);
+            } else {
+                var when = part.when().get();
+                preds = parsePredicate(block, when);
             }
 
             var modelData = parseBaseVariants(part.apply());
@@ -133,22 +114,43 @@ public class BlockStateModelManager {
         }
     }
 
-    private static void applyWhenMultipart(BlockStatePredicate predicate, Block block, Map<String, String> x) {
-        for (var entry : x.entrySet()) {
-            //noinspection rawtypes
-            var prop = (Property) block.getStateManager().getProperty(entry.getKey());
+    @SuppressWarnings({"ReassignedVariable", "unchecked", "rawtypes", "StatementWithEmptyBody"})
+    private static Predicate<BlockState> parsePredicate(Block block, StateMultiPartDefinition.Condition when) {
+        if (when instanceof StateMultiPartDefinition.KeyValueCondition keyVal) {
+            var predicate = BlockStatePredicate.forBlock(block);
+            for (var pair : keyVal.tests().entrySet()) {
+                var prop = (Property) block.getStateManager().getProperty(pair.getKey());
+                if (prop == null) {
+                    continue;
+                }
+                var allowed = new HashSet<>();
+                var blocked = new HashSet<>();
 
-            if (prop == null) {
-                continue;
+                for (var term : pair.getValue().entries()) {
+                    var type = term.negated() ? blocked : allowed;
+                    prop.parse(term.value()).ifPresent(type::add);
+                }
+
+                if (allowed.isEmpty() && blocked.isEmpty()) {
+
+                } else if (blocked.isEmpty()) {
+                    predicate = predicate.with(prop, allowed::contains);
+                } else if (allowed.isEmpty()) {
+                    predicate = predicate.with(prop, blocked::contains);
+                } else {
+                    predicate = predicate.with(prop, Util.<Object>or(allowed::contains, blocked::contains));
+                }
             }
-
-            var split = Set.of(entry.getValue().split("\\|"));
-
-            //noinspection rawtypes,unchecked
-            predicate.with(prop, y -> split.contains(prop.name((Comparable) y)));
+        } else if (when instanceof StateMultiPartDefinition.CombinedCondition combinedCondition) {
+            var predicates = combinedCondition.terms().stream().map(x -> parsePredicate(block, x)).toArray(Predicate[]::new);
+            return switch (combinedCondition.operation()) {
+                case OR -> Util.or(predicates);
+                case AND -> Util.and(predicates);
+            };
         }
-    }
 
+        return x -> false;
+    }
 
     private static void parseVariants(Block block, Map<String, List<StateModelVariant>> modelDef, ArrayList<Pair<BlockStatePredicate, List<ModelData>>> list) {
         parseVariants(block, modelDef, (a, b) -> {
@@ -156,6 +158,7 @@ public class BlockStateModelManager {
             list.add(new Pair<>(a, modelData));
         });
     }
+
     public static void parseVariants(Block block, Map<String, List<StateModelVariant>> modelDef, BiConsumer<BlockStatePredicate, List<StateModelVariant>> consumer) {
         start:
         for (var pair : modelDef.entrySet()) {
@@ -206,8 +209,6 @@ public class BlockStateModelManager {
     }
 
     public interface ModelGetter {
-        ModelData getModel(Random random);
-
         static ModelGetter of(List<ModelData> data) {
             if (data.size() == 1) {
                 return new SingleGetter(data.get(0));
@@ -215,6 +216,8 @@ public class BlockStateModelManager {
 
             return WeightedGetter.create(data);
         }
+
+        ModelData getModel(Random random);
     }
 
 
@@ -241,5 +244,7 @@ public class BlockStateModelManager {
             return this.data.get(random);
         }
     }
-    public record ModelData(ItemStack stack, Quaternionfc quaternionfc, int weight) {}
+
+    public record ModelData(ItemStack stack, Quaternionfc quaternionfc, int weight) {
+    }
 }

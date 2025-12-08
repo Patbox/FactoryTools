@@ -6,6 +6,7 @@ import net.minecraft.block.entity.BlockEntityType;
 import net.minecraft.component.ComponentMap;
 import net.minecraft.component.ComponentsAccess;
 import net.minecraft.component.DataComponentTypes;
+import net.minecraft.entity.Entity;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.inventory.ContainerLock;
 import net.minecraft.server.network.ServerPlayerEntity;
@@ -16,6 +17,7 @@ import net.minecraft.storage.WriteView;
 import net.minecraft.text.Text;
 import net.minecraft.text.TextCodecs;
 import net.minecraft.util.math.BlockPos;
+import net.minecraft.world.World;
 import org.jetbrains.annotations.Nullable;
 
 public abstract class LockableBlockEntity extends BlockEntity {
@@ -28,15 +30,17 @@ public abstract class LockableBlockEntity extends BlockEntity {
         this.lock = ContainerLock.EMPTY;
     }
 
-    public static boolean checkUnlocked(PlayerEntity player, ContainerLock lock, Text containerName) {
-        return checkUnlocked(player, lock, containerName, true);
+    public static boolean checkUnlocked(PlayerEntity player,  World world, BlockPos pos, ContainerLock lock, Text containerName) {
+        return checkUnlocked(player, world, pos, lock, containerName, true);
     }
 
-    public static boolean checkUnlocked(PlayerEntity player, ContainerLock lock, Text containerName, boolean display) {
+    public static boolean checkUnlocked(PlayerEntity player, World world, BlockPos containerPos, ContainerLock lock, Text containerName, boolean display) {
         if (!player.isSpectator() && !lock.canOpen(player.getMainHandStack())) {
             if (display) {
                 player.sendMessage(Text.translatable("container.isLocked", containerName), true);
-                player.playSoundToPlayer(SoundEvents.BLOCK_CHEST_LOCKED, SoundCategory.BLOCKS, 1.0F, 1.0F);
+                if (!world.isClient()) {
+                    world.playSound((Entity)null, containerPos.getX(), containerPos.getY(), containerPos.getZ(), SoundEvents.BLOCK_CHEST_LOCKED, SoundCategory.BLOCKS, 1.0F, 1.0F);
+                }
             }
             return false;
         } else {
@@ -102,7 +106,7 @@ public abstract class LockableBlockEntity extends BlockEntity {
     }
 
     public boolean checkUnlocked(PlayerEntity player, boolean display) {
-        return checkUnlocked(player, this.lock, this.getDisplayName(), display) && checkUnlockedMixin(player, display);
+        return checkUnlocked(player, this.world, this.pos, this.lock, this.getDisplayName(), display) && checkUnlockedMixin(player, display);
     }
 
     protected boolean checkUnlockedMixin(PlayerEntity player, boolean display) {
