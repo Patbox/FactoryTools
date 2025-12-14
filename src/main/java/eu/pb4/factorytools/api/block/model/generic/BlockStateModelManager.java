@@ -1,5 +1,6 @@
 package eu.pb4.factorytools.api.block.model.generic;
 
+import com.google.common.collect.Lists;
 import com.google.gson.JsonParser;
 import com.mojang.serialization.JsonOps;
 import eu.pb4.factorytools.api.util.ResourceUtils;
@@ -14,6 +15,7 @@ import net.minecraft.particle.ItemStackParticleEffect;
 import net.minecraft.particle.ParticleEffect;
 import net.minecraft.particle.ParticleTypes;
 import net.minecraft.predicate.block.BlockStatePredicate;
+import net.minecraft.state.State;
 import net.minecraft.state.property.Property;
 import net.minecraft.util.Identifier;
 import net.minecraft.util.Pair;
@@ -121,23 +123,7 @@ public class BlockStateModelManager {
                 if (prop == null) {
                     continue;
                 }
-                var allowed = new HashSet<>();
-                var blocked = new HashSet<>();
-
-                for (var term : pair.getValue().entries()) {
-                    var type = term.negated() ? blocked : allowed;
-                    prop.parse(term.value()).ifPresent(type::add);
-                }
-
-                if (allowed.isEmpty() && blocked.isEmpty()) {
-
-                } else if (blocked.isEmpty()) {
-                    predicate = predicate.with(prop, allowed::contains);
-                } else if (allowed.isEmpty()) {
-                    predicate = predicate.with(prop, blocked::contains);
-                } else {
-                    predicate = predicate.with(prop, Util.<Object>or(allowed::contains, blocked::contains));
-                }
+                predicate.with(prop, parseTerms(pair.getValue().entries(), block, prop));
             }
             return predicate;
         } else if (when instanceof StateMultiPartDefinition.CombinedCondition combinedCondition) {
@@ -149,6 +135,63 @@ public class BlockStateModelManager {
         }
 
         return x -> false;
+    }
+
+    private static <O, S extends State<O, S>, T extends Comparable<T>> Predicate<S> parseTerms(List<StateMultiPartDefinition.KeyValueCondition.Term> entries, final O owner, final Property<T> property) {
+        Predicate<T> allowedValueTest = Util.anyOf(Lists.transform(entries, t -> parseTerm(owner, property, t)));
+        List<T> allowedValues = new ArrayList<>(property.getValues());
+        int allValuesCount = allowedValues.size();
+        allowedValues.removeIf(allowedValueTest.negate());
+        int allowedValuesCount = allowedValues.size();
+        if (allowedValuesCount == 0) {
+            return blockState -> false;
+        } else {
+            int rejectedValuesCount = allValuesCount - allowedValuesCount;
+            if (rejectedValuesCount == 0) {
+                return blockState -> true;
+            } else {
+                boolean negate;
+                List<T> valuesToMatch;
+                if (allowedValuesCount <= rejectedValuesCount) {
+                    negate = false;
+                    valuesToMatch = allowedValues;
+                } else {
+                    negate = true;
+                    List<T> rejectedValues = new ArrayList<>(property.getValues());
+                    rejectedValues.removeIf(allowedValueTest);
+                    valuesToMatch = rejectedValues;
+                }
+
+                if (valuesToMatch.size() == 1) {
+                    T expectedValue = valuesToMatch.getFirst();
+                    return state -> {
+                        T value = state.get(property);
+                        return expectedValue.equals(value) ^ negate;
+                    };
+                } else {
+                    return state -> {
+                        T value = state.get(property);
+                        return valuesToMatch.contains(value) ^ negate;
+                    };
+                }
+            }
+        }
+    }
+
+    private static <T extends Comparable<T>> T getValueOrThrow(final Object owner, final Property<T> property, final String input) {
+        Optional<T> value = property.parse(input);
+        if (value.isEmpty()) {
+            throw new RuntimeException(
+                    String.format(Locale.ROOT, "Unknown value '%s' for property '%s' on '%s'", input, property, owner)
+            );
+        } else {
+            return value.get();
+        }
+    }
+
+    private static <T extends Comparable<T>> Predicate<T> parseTerm(final Object owner, final Property<T> property, final StateMultiPartDefinition.KeyValueCondition.Term term) {
+        T parsedValue = getValueOrThrow(owner, property, term.value());
+        return term.negated() ? value -> !value.equals(parsedValue) : value -> value.equals(parsedValue);
     }
 
     private static void parseVariants(Block block, Map<String, List<StateModelVariant>> modelDef, ArrayList<Pair<BlockStatePredicate, List<ModelData>>> list) {
