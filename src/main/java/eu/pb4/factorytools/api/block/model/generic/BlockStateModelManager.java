@@ -87,8 +87,6 @@ public class BlockStateModelManager {
                             if (!objects.isEmpty() && !PARTICLE.containsKey(state)) {
                                 PARTICLE.put(state, new ItemStackParticleEffect(ParticleTypes.ITEM, objects.getFirst().getModel(rand).stack));
                             }
-
-                            break;
                         }
                     }
                 }
@@ -141,6 +139,7 @@ public class BlockStateModelManager {
                     predicate = predicate.with(prop, Util.<Object>or(allowed::contains, blocked::contains));
                 }
             }
+            return predicate;
         } else if (when instanceof StateMultiPartDefinition.CombinedCondition combinedCondition) {
             var predicates = combinedCondition.terms().stream().map(x -> parsePredicate(block, x)).toArray(Predicate[]::new);
             return switch (combinedCondition.operation()) {
