@@ -1,13 +1,13 @@
 package eu.pb4.factorytools.api.block.model.generic;
 
 import eu.pb4.factorytools.api.block.CustomBreakingParticleBlock;
-import net.minecraft.block.BlockState;
-import net.minecraft.particle.ParticleEffect;
+import net.minecraft.core.particles.ParticleOptions;
+import net.minecraft.world.level.block.state.BlockState;
 
 public interface BSMMParticleBlock extends CustomBreakingParticleBlock {
 
     @Override
-    default ParticleEffect getBreakingParticle(BlockState blockState) {
+    default ParticleOptions getBreakingParticle(BlockState blockState) {
         return BlockStateModelManager.getParticle(blockState);
     }
 }

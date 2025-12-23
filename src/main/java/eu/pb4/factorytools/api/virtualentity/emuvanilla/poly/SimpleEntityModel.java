@@ -7,14 +7,14 @@ import eu.pb4.factorytools.mixin.LivingEntityAccessor;
 import eu.pb4.polymer.virtualentity.api.ElementHolder;
 import eu.pb4.polymer.virtualentity.api.elements.InteractionElement;
 import eu.pb4.polymer.virtualentity.api.elements.VirtualElement;
-import net.minecraft.entity.LivingEntity;
-import net.minecraft.server.network.ServerPlayNetworkHandler;
-import net.minecraft.util.math.Vec3d;
+import net.minecraft.server.network.ServerGamePacketListenerImpl;
+import net.minecraft.world.entity.LivingEntity;
+import net.minecraft.world.phys.Vec3;
 import org.joml.Matrix4f;
 import org.joml.Matrix4fStack;
 
 public class SimpleEntityModel<T extends LivingEntity> extends ElementHolder {
-    private static final Vec3d OFFSET = new Vec3d(0, 0.2, 0);
+    private static final Vec3 OFFSET = new Vec3(0, 0.2, 0);
 
     private static final Matrix4fStack STACK = new Matrix4fStack(64);
     public final InteractionElement interaction;
@@ -42,7 +42,7 @@ public class SimpleEntityModel<T extends LivingEntity> extends ElementHolder {
     }
 
     @Override
-    public boolean startWatching(ServerPlayNetworkHandler player) {
+    public boolean startWatching(ServerGamePacketListenerImpl player) {
         if (noTick) {
             onTick();
         }
@@ -56,12 +56,12 @@ public class SimpleEntityModel<T extends LivingEntity> extends ElementHolder {
         this.rideAttachment.getDataTracker().set(LivingEntityAccessor.getHEALTH(), this.entity.getHealth());
         this.interaction.setCustomName(this.entity.getCustomName());
         this.interaction.setCustomNameVisible(this.entity.isCustomNameVisible());
-        this.rideAttachment.setYaw(entity.getYaw());
-        if (entity.getHeight() != this.height) {
-            this.height = entity.getHeight();
-            this.interaction.setSize(entity.getWidth(), this.height);
-            this.leadAttachment.setOffset(new Vec3d(0, this.height / 2, 0));
-            this.rideAttachment.setOffset(new Vec3d(0, this.height, 0));
+        this.rideAttachment.setYaw(entity.getYRot());
+        if (entity.getBbHeight() != this.height) {
+            this.height = entity.getBbHeight();
+            this.interaction.setSize(entity.getBbWidth(), this.height);
+            this.leadAttachment.setOffset(new Vec3(0, this.height / 2, 0));
+            this.rideAttachment.setOffset(new Vec3(0, this.height, 0));
         }
 
         STACK.pushMatrix();

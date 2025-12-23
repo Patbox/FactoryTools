@@ -1,9 +1,9 @@
 package eu.pb4.factorytools.api.block.model.generic;
 
 import eu.pb4.polymer.virtualentity.api.elements.ItemDisplayElement;
-import net.minecraft.block.BlockState;
-import net.minecraft.util.math.BlockPos;
-import net.minecraft.util.math.Vec3d;
+import net.minecraft.core.BlockPos;
+import net.minecraft.world.level.block.state.BlockState;
+import net.minecraft.world.phys.Vec3;
 
 public class ShiftyBlockStateModel extends BlockStateModel {
 
@@ -26,6 +26,6 @@ public class ShiftyBlockStateModel extends BlockStateModel {
     @Override
     protected void setupElement(ItemDisplayElement element, int i, BlockPos pos) {
         i = Math.abs((i + pos.getX() + pos.getY() + pos.getZ()) % 5);
-        element.setOffset(new Vec3d(i / 5000f, i / 5000f, i / 5000f).subtract(5 / 5000f / 2));
+        element.setOffset(new Vec3(i / 5000f, i / 5000f, i / 5000f).subtract(5 / 5000f / 2));
     }
 }

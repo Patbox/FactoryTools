@@ -4,22 +4,22 @@ import eu.pb4.polymer.virtualentity.api.elements.ItemDisplayElement;
 import eu.pb4.polymer.virtualentity.api.tracker.DataTrackerLike;
 import eu.pb4.polymer.virtualentity.api.tracker.DisplayTrackedData;
 import eu.pb4.polymer.virtualentity.api.tracker.SimpleDataTracker;
-import net.minecraft.entity.data.DataTracker;
-import net.minecraft.entity.data.TrackedData;
-import net.minecraft.item.Item;
-import net.minecraft.item.ItemDisplayContext;
-import net.minecraft.item.ItemStack;
-import net.minecraft.network.listener.ClientPlayPacketListener;
-import net.minecraft.network.packet.Packet;
-import net.minecraft.network.packet.s2c.play.EntityTrackerUpdateS2CPacket;
-import net.minecraft.server.network.ServerPlayNetworkHandler;
-import net.minecraft.util.Identifier;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.*;
+import net.minecraft.network.protocol.Packet;
+import net.minecraft.network.protocol.game.ClientGamePacketListener;
+import net.minecraft.network.protocol.game.ClientboundSetEntityDataPacket;
+import net.minecraft.network.syncher.EntityDataAccessor;
+import net.minecraft.network.syncher.SynchedEntityData;
+import net.minecraft.resources.Identifier;
+import net.minecraft.server.network.ServerGamePacketListenerImpl;
+import net.minecraft.world.item.Item;
+import net.minecraft.world.item.ItemDisplayContext;
+import net.minecraft.world.item.ItemStack;
 
 public class LodItemDisplayElement extends ItemDisplayElement {
-    protected static final Set<TrackedData<?>> DEFAULT_LOD = Set.of(
+    protected static final Set<EntityDataAccessor<?>> DEFAULT_LOD = Set.of(
             DisplayTrackedData.START_INTERPOLATION,
             DisplayTrackedData.INTERPOLATION_DURATION,
             DisplayTrackedData.TRANSLATION,
@@ -34,7 +34,7 @@ public class LodItemDisplayElement extends ItemDisplayElement {
     public final DataTrackerLike mediumTracker = new SimpleDataTracker(this.getEntityType());
     public final DataTrackerLike mainTracker = new SimpleDataTracker(this.getEntityType());
 
-    protected Set<TrackedData<?>> lodTracked = DEFAULT_LOD;
+    protected Set<EntityDataAccessor<?>> lodTracked = DEFAULT_LOD;
     private int updateTick = 0;
     protected double nearDistanceSquared = 50 * 50;
     protected float farDistanceSquared = 90 * 90;
@@ -98,7 +98,7 @@ public class LodItemDisplayElement extends ItemDisplayElement {
         return element;
     }
 
-    public void addLodData(TrackedData<?> data) {
+    public void addLodData(EntityDataAccessor<?> data) {
         if (this.lodTracked == DEFAULT_LOD) {
             this.lodTracked = new HashSet<>(this.lodTracked);
         }
@@ -109,12 +109,12 @@ public class LodItemDisplayElement extends ItemDisplayElement {
     protected DataTrackerLike createDataTracker() {
         return new DataTrackerLike() {
             @Override
-            public <T> @Nullable T get(TrackedData<T> data) {
+            public <T> @Nullable T get(EntityDataAccessor<T> data) {
                 return lodTracked.contains(data) ? nearTracker.get(data) : mainTracker.get(data);
             }
 
             @Override
-            public <T> void set(TrackedData<T> key, T value, boolean forceDirty) {
+            public <T> void set(EntityDataAccessor<T> key, T value, boolean forceDirty) {
                 if (lodTracked.contains(key)) {
                     nearTracker.set(key, value, forceDirty);
                     if (key != DisplayTrackedData.START_INTERPOLATION) {
@@ -126,7 +126,7 @@ public class LodItemDisplayElement extends ItemDisplayElement {
             }
 
             @Override
-            public <T> void setDirty(TrackedData<T> key, boolean isDirty) {
+            public <T> void setDirty(EntityDataAccessor<T> key, boolean isDirty) {
                 set(key, get(key), isDirty);
             }
 
@@ -136,18 +136,18 @@ public class LodItemDisplayElement extends ItemDisplayElement {
             }
 
             @Override
-            public boolean isDirty(TrackedData<?> key) {
+            public boolean isDirty(EntityDataAccessor<?> key) {
                 return nearTracker.isDirty(key) || mainTracker.isDirty(key);
             }
 
             @Override
-            public @Nullable List<DataTracker.SerializedEntry<?>> getDirtyEntries() {
+            public @Nullable List<SynchedEntityData.DataValue<?>> getDirtyEntries() {
                 return mainTracker.getDirtyEntries();
             }
 
             @Override
-            public @Nullable List<DataTracker.SerializedEntry<?>> getChangedEntries() {
-                var x = new ArrayList<DataTracker.SerializedEntry<?>>();
+            public @Nullable List<SynchedEntityData.DataValue<?>> getChangedEntries() {
+                var x = new ArrayList<SynchedEntityData.DataValue<?>>();
 
                 var a = nearTracker.getChangedEntries();
                 if (a != null) {
@@ -168,24 +168,24 @@ public class LodItemDisplayElement extends ItemDisplayElement {
     protected void sendTrackerUpdates() {
         if (isDisabled) {
             if (this.nearTracker.isDirty()) {
-                this.getHolder().sendPacket(new EntityTrackerUpdateS2CPacket(this.getEntityId(), this.nearTracker.getDirtyEntries()));
+                this.getHolder().sendPacket(new ClientboundSetEntityDataPacket(this.getEntityId(), this.nearTracker.getDirtyEntries()));
             }
             if (this.mainTracker.isDirty()) {
-                this.getHolder().sendPacket(new EntityTrackerUpdateS2CPacket(this.getEntityId(), this.mainTracker.getDirtyEntries()));
+                this.getHolder().sendPacket(new ClientboundSetEntityDataPacket(this.getEntityId(), this.mainTracker.getDirtyEntries()));
             }
         } else {
-            Packet<ClientPlayPacketListener> nearPacket = null;
-            Packet<ClientPlayPacketListener> mediumPacket = null;
+            Packet<ClientGamePacketListener> nearPacket = null;
+            Packet<ClientGamePacketListener> mediumPacket = null;
             if (this.mainTracker.isDirty()) {
-                this.getHolder().sendPacket(new EntityTrackerUpdateS2CPacket(this.getEntityId(), this.mainTracker.getDirtyEntries()));
+                this.getHolder().sendPacket(new ClientboundSetEntityDataPacket(this.getEntityId(), this.mainTracker.getDirtyEntries()));
             }
 
             if (this.nearTracker.isDirty()) {
-                nearPacket = new EntityTrackerUpdateS2CPacket(this.getEntityId(), this.nearTracker.getDirtyEntries());
+                nearPacket = new ClientboundSetEntityDataPacket(this.getEntityId(), this.nearTracker.getDirtyEntries());
             }
 
             if (this.mediumTracker.isDirty() && (updateTick++) % 10 == 0) {
-                mediumPacket = new EntityTrackerUpdateS2CPacket(this.getEntityId(), this.mediumTracker.getDirtyEntries());
+                mediumPacket = new ClientboundSetEntityDataPacket(this.getEntityId(), this.mediumTracker.getDirtyEntries());
             }
 
             if (nearPacket == null && mediumPacket == null) {
@@ -196,18 +196,18 @@ public class LodItemDisplayElement extends ItemDisplayElement {
                 var d = this.getSquaredDistance(player);
                 if (d < this.nearDistanceSquared) {
                     if (nearPacket != null) {
-                        player.sendPacket(nearPacket);
+                        player.send(nearPacket);
                     }
                 } else if (d < this.farDistanceSquared) {
                     if (mediumPacket != null) {
-                        player.sendPacket(mediumPacket);
+                        player.send(mediumPacket);
                     }
                 }
             }
         }
     }
 
-    protected double getSquaredDistance(ServerPlayNetworkHandler player) {
-        return (Objects.requireNonNull(this.getHolder())).getPos().squaredDistanceTo(player.player.getEntityPos());
+    protected double getSquaredDistance(ServerGamePacketListenerImpl player) {
+        return (Objects.requireNonNull(this.getHolder())).getPos().distanceToSqr(player.player.position());
     }
 }

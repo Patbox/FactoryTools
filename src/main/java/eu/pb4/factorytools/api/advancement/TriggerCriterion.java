@@ -2,25 +2,24 @@ package eu.pb4.factorytools.api.advancement;
 
 import com.mojang.serialization.Codec;
 import com.mojang.serialization.codecs.RecordCodecBuilder;
-import net.minecraft.advancement.AdvancementCriterion;
-import net.minecraft.advancement.criterion.AbstractCriterion;
-import net.minecraft.predicate.entity.LootContextPredicate;
-import net.minecraft.server.network.ServerPlayerEntity;
-import net.minecraft.util.Identifier;
-
 import java.util.Optional;
+import net.minecraft.advancements.Criterion;
+import net.minecraft.advancements.criterion.ContextAwarePredicate;
+import net.minecraft.advancements.criterion.SimpleCriterionTrigger;
+import net.minecraft.resources.Identifier;
+import net.minecraft.server.level.ServerPlayer;
 
-public class TriggerCriterion extends AbstractCriterion<TriggerCriterion.Condition> {
-    public static AdvancementCriterion<?> of(Identifier powerHandCrank) {
-        return FactoryAdvancementCriteria.TRIGGER.create(new Condition(powerHandCrank));
+public class TriggerCriterion extends SimpleCriterionTrigger<TriggerCriterion.Condition> {
+    public static Criterion<?> of(Identifier powerHandCrank) {
+        return FactoryAdvancementCriteria.TRIGGER.createCriterion(new Condition(powerHandCrank));
     }
 
-    public static void trigger(ServerPlayerEntity player, Identifier identifier) {
+    public static void trigger(ServerPlayer player, Identifier identifier) {
         FactoryAdvancementCriteria.TRIGGER.trigger(player, condition -> condition.identifier.equals(identifier));
     }
 
     @Override
-    public Codec<Condition> getConditionsCodec() {
+    public Codec<Condition> codec() {
         return Condition.CODEC;
     }
 
@@ -29,7 +28,7 @@ public class TriggerCriterion extends AbstractCriterion<TriggerCriterion.Conditi
                 Identifier.CODEC.fieldOf("trigger").forGetter(Condition::identifier)
         ).apply(instance, Condition::new));
         @Override
-        public Optional<LootContextPredicate> player() {
+        public Optional<ContextAwarePredicate> player() {
             return Optional.empty();
         }
     }

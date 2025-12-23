@@ -4,10 +4,10 @@ import eu.pb4.factorytools.api.util.SharedMatrix4f;
 import eu.pb4.factorytools.impl.CompatStatus;
 import eu.pb4.polymer.virtualentity.api.ElementHolder;
 import eu.pb4.polymer.virtualentity.api.attachment.BlockAwareAttachment;
-import net.minecraft.block.BlockState;
-import net.minecraft.block.Blocks;
-import net.minecraft.server.network.ServerPlayNetworkHandler;
-import net.minecraft.util.math.BlockPos;
+import net.minecraft.core.BlockPos;
+import net.minecraft.server.network.ServerGamePacketListenerImpl;
+import net.minecraft.world.level.block.Blocks;
+import net.minecraft.world.level.block.state.BlockState;
 import org.jetbrains.annotations.Nullable;
 import org.joml.Matrix4f;
 
@@ -38,8 +38,8 @@ public class BlockModel extends ElementHolder {
         this.updateTick++;
     }
 
-    protected double squaredDistance(ServerPlayNetworkHandler player) {
-        return this.getPos().squaredDistanceTo(player.player.getEntityPos());
+    protected double squaredDistance(ServerGamePacketListenerImpl player) {
+        return this.getPos().distanceToSqr(player.player.position());
     }
 
     @Nullable
@@ -49,12 +49,12 @@ public class BlockModel extends ElementHolder {
 
     protected BlockState blockState() {
         var x = blockAware();
-        return x != null ? x.getBlockState() : Blocks.AIR.getDefaultState();
+        return x != null ? x.getBlockState() : Blocks.AIR.defaultBlockState();
     }
 
     protected BlockPos blockPos() {
         var x = blockAware();
-        return x != null ? x.getBlockPos() : BlockPos.ORIGIN;
+        return x != null ? x.getBlockPos() : BlockPos.ZERO;
     }
 
     protected boolean inWorld() {

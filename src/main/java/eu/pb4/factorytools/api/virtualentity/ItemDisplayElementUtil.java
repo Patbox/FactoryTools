@@ -5,19 +5,16 @@ import eu.pb4.polymer.resourcepack.extras.api.ResourcePackExtras;
 import eu.pb4.polymer.virtualentity.api.elements.ItemDisplayElement;
 import it.unimi.dsi.fastutil.ints.IntList;
 import it.unimi.dsi.fastutil.objects.Reference2ObjectOpenHashMap;
-import net.minecraft.component.DataComponentTypes;
-import net.minecraft.component.type.CustomModelDataComponent;
-import net.minecraft.component.type.DyedColorComponent;
-import net.minecraft.item.Item;
-import net.minecraft.item.ItemDisplayContext;
-import net.minecraft.item.ItemStack;
-import net.minecraft.item.Items;
-import net.minecraft.util.Identifier;
-
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.function.Function;
+import net.minecraft.core.component.DataComponents;
+import net.minecraft.resources.Identifier;
+import net.minecraft.world.item.Item;
+import net.minecraft.world.item.ItemDisplayContext;
+import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.item.Items;
 
 public class ItemDisplayElementUtil {
     private static final Map<Item, ItemStack> ITEM_MODEL_MAP = new Reference2ObjectOpenHashMap<>();
@@ -31,7 +28,7 @@ public class ItemDisplayElementUtil {
     }
 
     public static ItemStack getModel(Item model) {
-        return getModelGeneric(model, ITEM_MODEL_MAP, Items.TRIAL_KEY, (item) -> item.getComponents().get(DataComponentTypes.ITEM_MODEL));
+        return getModelGeneric(model, ITEM_MODEL_MAP, Items.TRIAL_KEY, (item) -> item.components().get(DataComponents.ITEM_MODEL));
     }
 
     public static ItemStack getModel(Identifier model) {
@@ -87,7 +84,7 @@ public class ItemDisplayElementUtil {
 
         if (stack == null) {
             stack = new ItemStack(baseItem);
-            stack.set(DataComponentTypes.ITEM_MODEL, itemModelfier.apply(model));
+            stack.set(DataComponents.ITEM_MODEL, itemModelfier.apply(model));
 
             synchronized (map) {
                 map.put(model, stack);

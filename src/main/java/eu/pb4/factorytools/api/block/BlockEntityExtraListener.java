@@ -1,7 +1,7 @@
 package eu.pb4.factorytools.api.block;
 
-import net.minecraft.world.chunk.WorldChunk;
+import net.minecraft.world.level.chunk.LevelChunk;
 
 public interface BlockEntityExtraListener {
-    void onListenerUpdate(WorldChunk chunk);
+    void onListenerUpdate(LevelChunk chunk);
 }

@@ -3,10 +3,9 @@ package eu.pb4.factorytools.api.recipe;
 import com.mojang.datafixers.util.Either;
 import com.mojang.serialization.Codec;
 import com.mojang.serialization.codecs.RecordCodecBuilder;
-import net.minecraft.item.ItemConvertible;
-import net.minecraft.item.ItemStack;
-
 import java.util.List;
+import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.level.ItemLike;
 
 public record OutputStack(ItemStack stack, float chance, int roll) {
     public static final Codec<OutputStack> CODEC_SELF = RecordCodecBuilder.create(x -> x.group(
@@ -20,14 +19,14 @@ public record OutputStack(ItemStack stack, float chance, int roll) {
     public static final Codec<List<OutputStack>> LIST_CODEC = Codec.either(CODEC, Codec.list(CODEC))
             .xmap(x -> x.map(y -> List.of(y), y -> y), x -> x.size() == 1 ? Either.left(x.get(0)) : Either.right(x));
 
-    public static OutputStack of(ItemConvertible stick) {
-        return new OutputStack(stick.asItem().getDefaultStack(), 1, 1);
+    public static OutputStack of(ItemLike stick) {
+        return new OutputStack(stick.asItem().getDefaultInstance(), 1, 1);
     }
-    public static OutputStack of(ItemConvertible stick, float chance, int roll) {
-        return new OutputStack(stick.asItem().getDefaultStack(), chance, roll);
+    public static OutputStack of(ItemLike stick, float chance, int roll) {
+        return new OutputStack(stick.asItem().getDefaultInstance(), chance, roll);
     }
 
-    public static OutputStack of(ItemConvertible stick, float chance) {
-        return new OutputStack(stick.asItem().getDefaultStack(), chance, 1);
+    public static OutputStack of(ItemLike stick, float chance) {
+        return new OutputStack(stick.asItem().getDefaultInstance(), chance, 1);
     }
 }

@@ -1,8 +1,6 @@
 package eu.pb4.factorytools.api.virtualentity.emuvanilla.animation;
 
 import eu.pb4.factorytools.api.virtualentity.emuvanilla.model.ModelPart;
-import net.minecraft.entity.AnimationState;
-import net.minecraft.util.math.MathHelper;
 import org.joml.Vector3f;
 
 import java.util.ArrayList;
@@ -10,6 +8,8 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.function.Function;
+import net.minecraft.util.Mth;
+import net.minecraft.world.entity.AnimationState;
 
 public class Animation {
     private final AnimationDefinition definition;
@@ -61,8 +61,8 @@ public class Animation {
     }
 
     public void apply(AnimationState animationState, float age, float speedMultiplier) {
-        animationState.run((state) -> {
-            this.apply((long) ((float) state.getTimeInMilliseconds(age) * speedMultiplier), 1.0F);
+        animationState.ifStarted((state) -> {
+            this.apply((long) ((float) state.getTimeInMillis(age) * speedMultiplier), 1.0F);
         });
     }
 
@@ -84,7 +84,7 @@ public class Animation {
 
     private record TransformationEntry(ModelPart part, Transformation.Target target, Keyframe[] keyframes) {
         public void apply(float runningSeconds, float scale, Vector3f vec) {
-            int i = Math.max(0, MathHelper.binarySearch(0, this.keyframes.length, (index) -> {
+            int i = Math.max(0, Mth.binarySearch(0, this.keyframes.length, (index) -> {
                 return runningSeconds <= this.keyframes[index].timestamp();
             }) - 1);
             int j = Math.min(this.keyframes.length - 1, i + 1);
@@ -93,7 +93,7 @@ public class Animation {
             float f = runningSeconds - keyframe.timestamp();
             float g;
             if (j != i) {
-                g = MathHelper.clamp(f / (keyframe2.timestamp() - keyframe.timestamp()), 0.0F, 1.0F);
+                g = Mth.clamp(f / (keyframe2.timestamp() - keyframe.timestamp()), 0.0F, 1.0F);
             } else {
                 g = 0.0F;
             }

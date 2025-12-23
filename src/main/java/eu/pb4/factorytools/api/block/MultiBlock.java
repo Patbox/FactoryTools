@@ -2,33 +2,32 @@ package eu.pb4.factorytools.api.block;
 
 import eu.pb4.factorytools.mixin.ItemUsageContextAccessor;
 import eu.pb4.polymer.core.api.block.PolymerBlock;
-import net.minecraft.block.Block;
-import net.minecraft.block.BlockState;
-import net.minecraft.block.Blocks;
-import net.minecraft.block.ShapeContext;
-import net.minecraft.block.piston.PistonBehavior;
-import net.minecraft.entity.player.PlayerEntity;
-import net.minecraft.item.ItemPlacementContext;
-import net.minecraft.item.ItemStack;
-import net.minecraft.loot.context.LootWorldContext;
-import net.minecraft.server.world.ServerWorld;
-import net.minecraft.state.StateManager;
-import net.minecraft.state.property.IntProperty;
-import net.minecraft.util.math.BlockPos;
-import net.minecraft.util.math.Direction;
-import net.minecraft.util.math.random.Random;
-import net.minecraft.world.World;
-import net.minecraft.world.WorldAccess;
-import net.minecraft.world.WorldView;
-import net.minecraft.world.tick.ScheduledTickView;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.List;
+import net.minecraft.core.BlockPos;
+import net.minecraft.core.Direction;
+import net.minecraft.server.level.ServerLevel;
+import net.minecraft.util.RandomSource;
+import net.minecraft.world.entity.player.Player;
+import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.item.context.BlockPlaceContext;
+import net.minecraft.world.level.Level;
+import net.minecraft.world.level.LevelReader;
+import net.minecraft.world.level.ScheduledTickAccess;
+import net.minecraft.world.level.block.Block;
+import net.minecraft.world.level.block.Blocks;
+import net.minecraft.world.level.block.state.BlockState;
+import net.minecraft.world.level.block.state.StateDefinition;
+import net.minecraft.world.level.block.state.properties.IntegerProperty;
+import net.minecraft.world.level.material.PushReaction;
+import net.minecraft.world.level.storage.loot.LootParams;
+import net.minecraft.world.phys.shapes.CollisionContext;
 
 public abstract class MultiBlock extends Block implements PolymerBlock {
-    private static IntProperty[] currentProperties;
+    private static IntegerProperty[] currentProperties;
     @Nullable
-    public final IntProperty partX, partY, partZ;
+    public final IntegerProperty partX, partY, partZ;
     private final int maxX;
     private final int maxY;
     private final int maxZ;
@@ -36,11 +35,11 @@ public abstract class MultiBlock extends Block implements PolymerBlock {
     private final int centerBlockY;
     private final int centerBlockZ;
 
-    public MultiBlock(int x, int y, int z, Settings settings) {
-        this(x - 1, y - 1, z - 1, hackPass(x - 1, y - 1, z - 1), settings.pistonBehavior(PistonBehavior.BLOCK));
+    public MultiBlock(int x, int y, int z, Properties settings) {
+        this(x - 1, y - 1, z - 1, hackPass(x - 1, y - 1, z - 1), settings.pushReaction(PushReaction.BLOCK));
     }
 
-    private MultiBlock(int x, int y, int z, IntProperty[] hackPass, Settings settings) {
+    private MultiBlock(int x, int y, int z, IntegerProperty[] hackPass, Properties settings) {
         super(settings);
         partX = hackPass[0];
         partY = hackPass[1];
@@ -54,18 +53,18 @@ public abstract class MultiBlock extends Block implements PolymerBlock {
         this.centerBlockZ = this.maxZ / 2;
     }
 
-    private static IntProperty[] hackPass(int x, int y, int z) {
-        var a = new IntProperty[3];
+    private static IntegerProperty[] hackPass(int x, int y, int z) {
+        var a = new IntegerProperty[3];
         if (x > 0) {
-            a[0] = IntProperty.of("x", 0, x);
+            a[0] = IntegerProperty.create("x", 0, x);
         }
 
         if (y > 0) {
-            a[1] = IntProperty.of("y", 0, y);
+            a[1] = IntegerProperty.create("y", 0, y);
         }
 
         if (z > 0) {
-            a[2] = IntProperty.of("z", 0, z);
+            a[2] = IntegerProperty.create("z", 0, z);
         }
         currentProperties = a;
         return a;
@@ -99,13 +98,13 @@ public abstract class MultiBlock extends Block implements PolymerBlock {
         return this.maxZ;
     }
 
-    public boolean place(ItemPlacementContext context, BlockState state) {
-        var startPlane = context.getSide();
+    public boolean place(BlockPlaceContext context, BlockState state) {
+        var startPlane = context.getClickedFace();
         var hit = ((ItemUsageContextAccessor) context).callGetHitResult();
-        var vec3d = hit.getPos().subtract(hit.getBlockPos().getX(), hit.getBlockPos().getY(), hit.getBlockPos().getZ());
-        var mut = context.getBlockPos().mutableCopy();
+        var vec3d = hit.getLocation().subtract(hit.getBlockPos().getX(), hit.getBlockPos().getY(), hit.getBlockPos().getZ());
+        var mut = context.getClickedPos().mutable();
 
-        if (startPlane.getDirection() == Direction.AxisDirection.NEGATIVE) {
+        if (startPlane.getAxisDirection() == Direction.AxisDirection.NEGATIVE) {
             mut.move(startPlane, this.getMax(state, startPlane));
         }
         mut.move(-this.getCenterBlockX(state) * startPlane.getAxis().choose(0, 1, 1),
@@ -130,12 +129,12 @@ public abstract class MultiBlock extends Block implements PolymerBlock {
             mut.move(0, 0, vec3d.z < 0.5 ? -1 : 0);
         }
 
-        var corner = mut.toImmutable();
+        var corner = mut.immutable();
 
-        var world = context.getWorld();
+        var world = context.getLevel();
 
-        PlayerEntity playerEntity = context.getPlayer();
-        var shapeContext = playerEntity == null ? ShapeContext.absent() : ShapeContext.of(playerEntity);
+        Player playerEntity = context.getPlayer();
+        var shapeContext = playerEntity == null ? CollisionContext.empty() : CollisionContext.of(playerEntity);
 
         for (int x = 0; x <= maxX; x++) {
             for (int y = 0; y <= maxY; y++) {
@@ -145,7 +144,7 @@ public abstract class MultiBlock extends Block implements PolymerBlock {
                     }
                     mut.set(corner).move(x, y, z);
                     var targetState = world.getBlockState(mut);
-                    if (!targetState.isReplaceable() || !state.canPlaceAt(world, mut) || !context.getWorld().canPlace(state, mut, shapeContext)) {
+                    if (!targetState.canBeReplaced() || !state.canSurvive(world, mut) || !context.getLevel().isUnobstructed(state, mut, shapeContext)) {
                         return false;
                     }
                 }
@@ -153,16 +152,16 @@ public abstract class MultiBlock extends Block implements PolymerBlock {
         }
 
         for (int x = 0; x <= maxX; x++) {
-            var posState = partX != null ? state.with(partX, x) : state;
+            var posState = partX != null ? state.setValue(partX, x) : state;
             for (int y = 0; y <= maxY; y++) {
-                posState = partY != null ? posState.with(partY, y) : posState;
+                posState = partY != null ? posState.setValue(partY, y) : posState;
                 for (int z = 0; z <= maxZ; z++) {
                     if (!this.isValid(state, x, y, z)) {
                         continue;
                     }
-                    posState = partZ != null ? posState.with(partZ, z) : posState;
-                    context.getWorld().setBlockState(mut.set(corner).move(x, y, z), posState);
-                    this.onPlacedMultiBlock(world, mut, posState, context.getPlayer(), context.getStack());
+                    posState = partZ != null ? posState.setValue(partZ, z) : posState;
+                    context.getLevel().setBlockAndUpdate(mut.set(corner).move(x, y, z), posState);
+                    this.onPlacedMultiBlock(world, mut, posState, context.getPlayer(), context.getItemInHand());
                 }
             }
         }
@@ -171,9 +170,9 @@ public abstract class MultiBlock extends Block implements PolymerBlock {
     }
 
     @Override
-    protected List<ItemStack> getDroppedStacks(BlockState state, LootWorldContext.Builder builder) {
+    protected List<ItemStack> getDrops(BlockState state, LootParams.Builder builder) {
         if (this.canDropStackFrom(state)) {
-            return super.getDroppedStacks(state, builder);
+            return super.getDrops(state, builder);
         }
         return List.of();
     }
@@ -182,39 +181,39 @@ public abstract class MultiBlock extends Block implements PolymerBlock {
         return isCenter(state);
     }
 
-    protected void onPlacedMultiBlock(World world, BlockPos pos, BlockState state, PlayerEntity player, ItemStack stack) {
+    protected void onPlacedMultiBlock(Level world, BlockPos pos, BlockState state, Player player, ItemStack stack) {
     }
 
     @Override
-    public void scheduledTick(BlockState state, ServerWorld world, BlockPos pos, Random random) {
-        super.scheduledTick(state, world, pos, random);
+    public void tick(BlockState state, ServerLevel world, BlockPos pos, RandomSource random) {
+        super.tick(state, world, pos, random);
     }
 
     @Override
-    protected BlockState getStateForNeighborUpdate(BlockState state, WorldView world, ScheduledTickView tickView, BlockPos pos, Direction direction, BlockPos neighborPos, BlockState neighborState, Random random) {
+    protected BlockState updateShape(BlockState state, LevelReader world, ScheduledTickAccess tickView, BlockPos pos, Direction direction, BlockPos neighborPos, BlockState neighborState, RandomSource random) {
         var property = getForDirection(direction);
         if (property == null) {
-            return super.getStateForNeighborUpdate(state, world, tickView, pos, direction, neighborPos, neighborState, random);
+            return super.updateShape(state, world, tickView, pos, direction, neighborPos, neighborState, random);
         }
-        var value = state.get(property);
-        var expectedSideValue = value + direction.getDirection().offset();
+        var value = state.getValue(property);
+        var expectedSideValue = value + direction.getAxisDirection().getStep();
 
         if (expectedSideValue < 0 || expectedSideValue > getMax(state, direction)) {
-            return super.getStateForNeighborUpdate(state, world, tickView, pos, direction, neighborPos, neighborState, random);
+            return super.updateShape(state, world, tickView, pos, direction, neighborPos, neighborState, random);
         }
 
         var x = this.getX(state);
         var y = this.getY(state);
         var z = this.getZ(state);
 
-        if (!this.isValid(state, x + direction.getOffsetX(), y + direction.getOffsetY(), z + direction.getOffsetZ())
-                || (neighborState.isOf(this) && neighborState.get(property) == expectedSideValue)
+        if (!this.isValid(state, x + direction.getStepX(), y + direction.getStepY(), z + direction.getStepZ())
+                || (neighborState.is(this) && neighborState.getValue(property) == expectedSideValue)
                 || this.ignoreNeighborUpdate(state, direction, pos, neighborPos, neighborState)
         ) {
-            return super.getStateForNeighborUpdate(state, world, tickView, pos, direction, neighborPos, neighborState, random);
+            return super.updateShape(state, world, tickView, pos, direction, neighborPos, neighborState, random);
         }
 
-        return Blocks.AIR.getDefaultState();
+        return Blocks.AIR.defaultBlockState();
     }
 
     protected boolean ignoreNeighborUpdate(BlockState state, Direction direction, BlockPos selfPos, BlockPos neighborPos, BlockState neighborState) {
@@ -223,27 +222,27 @@ public abstract class MultiBlock extends Block implements PolymerBlock {
 
     protected int getX(BlockState state) {
         if (this.partX != null) {
-            return state.get(this.partX);
+            return state.getValue(this.partX);
         }
         return 0;
     }
 
     protected int getY(BlockState state) {
         if (this.partY != null) {
-            return state.get(this.partY);
+            return state.getValue(this.partY);
         }
         return 0;
     }
 
     protected int getZ(BlockState state) {
         if (this.partZ != null) {
-            return state.get(this.partZ);
+            return state.getValue(this.partZ);
         }
         return 0;
     }
 
     @Nullable
-    protected IntProperty getForDirection(Direction direction) {
+    protected IntegerProperty getForDirection(Direction direction) {
         return switch (direction.getAxis()) {
             case X -> partX;
             case Y -> partY;
@@ -260,11 +259,11 @@ public abstract class MultiBlock extends Block implements PolymerBlock {
     }
 
     public BlockPos getCenter(BlockState state, BlockPos pos) {
-        var x = partX != null ? state.get(partX) : 0;
-        var y = partY != null ? state.get(partY) : 0;
-        var z = partZ != null ? state.get(partZ) : 0;
+        var x = partX != null ? state.getValue(partX) : 0;
+        var y = partY != null ? state.getValue(partY) : 0;
+        var z = partZ != null ? state.getValue(partZ) : 0;
 
-        return pos.add(this.getCenterBlockX(state) - x, this.getCenterBlockY(state) - y, this.getCenterBlockZ(state) - z);
+        return pos.offset(this.getCenterBlockX(state) - x, this.getCenterBlockY(state) - y, this.getCenterBlockZ(state) - z);
     }
 
     public boolean isCenter(BlockState state) {
@@ -272,8 +271,8 @@ public abstract class MultiBlock extends Block implements PolymerBlock {
     }
 
     @Override
-    protected void appendProperties(StateManager.Builder<Block, BlockState> builder) {
-        super.appendProperties(builder);
+    protected void createBlockStateDefinition(StateDefinition.Builder<Block, BlockState> builder) {
+        super.createBlockStateDefinition(builder);
         for (var currentProperty : currentProperties) {
             if (currentProperty != null) {
                 builder.add(currentProperty);

@@ -1,8 +1,8 @@
 package eu.pb4.factorytools.mixin;
 
 import eu.pb4.factorytools.impl.ExtraItemPredicate;
-import net.minecraft.predicate.item.ItemPredicate;
-import net.minecraft.util.Identifier;
+import net.minecraft.advancements.criterion.ItemPredicate;
+import net.minecraft.resources.Identifier;
 import org.spongepowered.asm.mixin.*;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;

@@ -11,17 +11,17 @@ import eu.pb4.polymer.resourcepack.extras.api.format.item.model.BasicItemModel;
 import eu.pb4.polymer.virtualentity.api.ElementHolder;
 import eu.pb4.polymer.virtualentity.api.attachment.ChunkAttachment;
 import eu.pb4.polymer.virtualentity.api.elements.ItemDisplayElement;
-import net.minecraft.block.BlockState;
-import net.minecraft.item.ItemStack;
-import net.minecraft.registry.Registries;
-import net.minecraft.server.network.ServerPlayerEntity;
-import net.minecraft.util.Identifier;
-import net.minecraft.util.math.BlockPos;
-import net.minecraft.util.math.Vec3d;
 import org.jetbrains.annotations.Nullable;
 import org.joml.Vector3f;
 
 import java.nio.charset.StandardCharsets;
+import net.minecraft.core.BlockPos;
+import net.minecraft.core.registries.BuiltInRegistries;
+import net.minecraft.resources.Identifier;
+import net.minecraft.server.level.ServerPlayer;
+import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.level.block.state.BlockState;
+import net.minecraft.world.phys.Vec3;
 
 public class VirtualDestroyStage extends ElementHolder {
     public static final ItemStack[] MODELS = new ItemStack[10];
@@ -36,11 +36,11 @@ public class VirtualDestroyStage extends ElementHolder {
     }
 
     @SuppressWarnings("SameReturnValue")
-    public static boolean updateState(ServerPlayerEntity player, BlockPos pos, BlockState state, int i) {
-        var self = ((ServerPlayNetExtF) player.networkHandler).factorytools$getVirtualDestroyStage();
+    public static boolean updateState(ServerPlayer player, BlockPos pos, BlockState state, int i) {
+        var self = ((ServerPlayNetExtF) player.connection).factorytools$getVirtualDestroyStage();
 
         if (i == -1 || !((state.getBlock() instanceof Marker marker && marker.showCustomMiningStageMarker(state, pos, player))
-                || (PolymerSyncedObject.getSyncedObject(Registries.BLOCK, state.getBlock()) instanceof Marker marker2 && marker2.showCustomMiningStageMarker(state, pos, player)))) {
+                || (PolymerSyncedObject.getSyncedObject(BuiltInRegistries.BLOCK, state.getBlock()) instanceof Marker marker2 && marker2.showCustomMiningStageMarker(state, pos, player)))) {
             self.setState(-1);
             if (self.getAttachment() != null) {
                 self.destroy();
@@ -48,10 +48,10 @@ public class VirtualDestroyStage extends ElementHolder {
             return true;
         }
 
-        var vecPos = Vec3d.ofCenter(pos);
+        var vecPos = Vec3.atCenterOf(pos);
 
         if (self.getAttachment() == null || !self.getAttachment().getPos().equals(vecPos)) {
-            ChunkAttachment.of(self, player.getEntityWorld(), vecPos);
+            ChunkAttachment.of(self, player.level(), vecPos);
         }
 
         self.setState(i);
@@ -59,9 +59,9 @@ public class VirtualDestroyStage extends ElementHolder {
         return true;
     }
 
-    public static void destroy(@Nullable ServerPlayerEntity player) {
-        if (player != null && player.networkHandler != null) {
-            ((ServerPlayNetExtF) player.networkHandler).factorytools$getVirtualDestroyStage().destroy();
+    public static void destroy(@Nullable ServerPlayer player) {
+        if (player != null && player.connection != null) {
+            ((ServerPlayNetExtF) player.connection).factorytools$getVirtualDestroyStage().destroy();
         }
     }
 
@@ -77,10 +77,10 @@ public class VirtualDestroyStage extends ElementHolder {
 
 
     static {
-        ResourcePackExtras.forDefault().addBridgedModelsFolder(Identifier.of(ModInit.ID, "block/special"));
+        ResourcePackExtras.forDefault().addBridgedModelsFolder(Identifier.fromNamespaceAndPath(ModInit.ID, "block/special"));
 
         for (int i = 0; i < MODELS.length; i++) {
-            MODELS[i] = ItemDisplayElementUtil.getModel(Identifier.of(ModInit.ID, "block/special/destroy_stage_" + i));
+            MODELS[i] = ItemDisplayElementUtil.getModel(Identifier.fromNamespaceAndPath(ModInit.ID, "block/special/destroy_stage_" + i));
         }
 
         var model =  """
@@ -94,14 +94,14 @@ public class VirtualDestroyStage extends ElementHolder {
 
         PolymerResourcePackUtils.RESOURCE_PACK_CREATION_EVENT.register(x -> {
             for (var i = 0; i < MODELS.length; i++) {
-                x.addData("", new ItemAsset(new BasicItemModel(Identifier.of(ModInit.ID, "block/special/destroy_stage_" + i)), ItemAsset.Properties.DEFAULT).toJson().getBytes(StandardCharsets.UTF_8));
+                x.addData("", new ItemAsset(new BasicItemModel(Identifier.fromNamespaceAndPath(ModInit.ID, "block/special/destroy_stage_" + i)), ItemAsset.Properties.DEFAULT).toJson().getBytes(StandardCharsets.UTF_8));
                 x.addData("assets/factorytools/models/block/special/destroy_stage_" + i + ".json", model.replace("|ID|", "" + i).getBytes(StandardCharsets.UTF_8));
             }
         });
     }
 
     public interface Marker {
-        default boolean showCustomMiningStageMarker(BlockState state, BlockPos pos, ServerPlayerEntity player) {
+        default boolean showCustomMiningStageMarker(BlockState state, BlockPos pos, ServerPlayer player) {
             return true;
         }
     }

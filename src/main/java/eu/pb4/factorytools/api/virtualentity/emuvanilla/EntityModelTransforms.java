@@ -1,13 +1,12 @@
 package eu.pb4.factorytools.api.virtualentity.emuvanilla;
 
-import net.minecraft.entity.EntityPose;
-import net.minecraft.entity.LivingEntity;
-import net.minecraft.util.math.Direction;
-import net.minecraft.util.math.MathHelper;
-import net.minecraft.util.math.RotationAxis;
 import org.joml.Matrix4f;
-
+import com.mojang.math.Axis;
 import java.util.function.Consumer;
+import net.minecraft.core.Direction;
+import net.minecraft.util.Mth;
+import net.minecraft.world.entity.LivingEntity;
+import net.minecraft.world.entity.Pose;
 
 public class EntityModelTransforms {
 
@@ -20,11 +19,11 @@ public class EntityModelTransforms {
     }
 
     public static void livingEntityTransform(LivingEntity entity, Matrix4f mat, float bodyYaw, Consumer<Matrix4f> scale) {
-        if (entity.isInPose(EntityPose.SLEEPING)) {
-            Direction direction = entity.getSleepingDirection();
+        if (entity.hasPose(Pose.SLEEPING)) {
+            Direction direction = entity.getBedOrientation();
             if (direction != null) {
                 float f = EntityValueExtraction.getStandingHeight(entity) - 0.1F;
-                mat.translate((float) (-direction.getOffsetX()) * f, 0.0F, (float) (-direction.getOffsetZ()) * f);
+                mat.translate((float) (-direction.getStepX()) * f, 0.0F, (float) (-direction.getStepZ()) * f);
             }
         }
 
@@ -37,36 +36,36 @@ public class EntityModelTransforms {
     }
 
     protected static void setupTransforms(LivingEntity entity, Matrix4f matrices, float bodyYaw, float baseHeight) {
-        if (entity.isFrozen()) {
-            bodyYaw += (float) (Math.cos((float) MathHelper.floor(entity.age) * 3.25F) * Math.PI * 0.4000000059604645);
+        if (entity.isFullyFrozen()) {
+            bodyYaw += (float) (Math.cos((float) Mth.floor(entity.tickCount) * 3.25F) * Math.PI * 0.4000000059604645);
         }
 
-        if (!entity.isInPose(EntityPose.SLEEPING)) {
-            matrices.rotate(RotationAxis.POSITIVE_Y.rotationDegrees(180.0F - bodyYaw));
+        if (!entity.hasPose(Pose.SLEEPING)) {
+            matrices.rotate(Axis.YP.rotationDegrees(180.0F - bodyYaw));
         }
 
         if (entity.deathTime > 0.0F) {
             float f = (entity.deathTime - 1.0F) / 20.0F * 1.6F;
-            f = MathHelper.sqrt(f);
+            f = Mth.sqrt(f);
             if (f > 1.0F) {
                 f = 1.0F;
             }
 
-            matrices.rotate(RotationAxis.POSITIVE_Z.rotationDegrees(f * 90));
-        } else if (entity.isUsingRiptide()) {
-            matrices.rotate(RotationAxis.POSITIVE_X.rotationDegrees(-90.0F - entity.getPitch()));
-            matrices.rotate(RotationAxis.POSITIVE_Y.rotationDegrees(entity.age * -75.0F));
-        } else if (entity.isInPose(EntityPose.SLEEPING)) {
-            Direction direction = entity.getSleepingDirection();
+            matrices.rotate(Axis.ZP.rotationDegrees(f * 90));
+        } else if (entity.isAutoSpinAttack()) {
+            matrices.rotate(Axis.XP.rotationDegrees(-90.0F - entity.getXRot()));
+            matrices.rotate(Axis.YP.rotationDegrees(entity.tickCount * -75.0F));
+        } else if (entity.hasPose(Pose.SLEEPING)) {
+            Direction direction = entity.getBedOrientation();
             float g = direction != null ? getYaw(direction) : bodyYaw;
-            matrices.rotate(RotationAxis.POSITIVE_Y.rotationDegrees(g));
-            matrices.rotate(RotationAxis.POSITIVE_Z.rotationDegrees(90));
-            matrices.rotate(RotationAxis.POSITIVE_Y.rotationDegrees(270.0F));
+            matrices.rotate(Axis.YP.rotationDegrees(g));
+            matrices.rotate(Axis.ZP.rotationDegrees(90));
+            matrices.rotate(Axis.YP.rotationDegrees(270.0F));
         } else if (entity.hasCustomName()) {
             var name = entity.getCustomName().getString();
             if ("Dinnerbone".equals(name) || "Grumm".equals(name)) {
-                matrices.translate(0.0F, (entity.getHeight() + 0.1F) / baseHeight, 0.0F);
-                matrices.rotate(RotationAxis.POSITIVE_Z.rotationDegrees(180.0F));
+                matrices.translate(0.0F, (entity.getBbHeight() + 0.1F) / baseHeight, 0.0F);
+                matrices.rotate(Axis.ZP.rotationDegrees(180.0F));
             }
         }
     }

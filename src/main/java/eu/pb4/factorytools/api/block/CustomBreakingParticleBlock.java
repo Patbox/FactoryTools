@@ -1,8 +1,8 @@
 package eu.pb4.factorytools.api.block;
 
-import net.minecraft.block.BlockState;
-import net.minecraft.particle.ParticleEffect;
+import net.minecraft.core.particles.ParticleOptions;
+import net.minecraft.world.level.block.state.BlockState;
 
 public interface CustomBreakingParticleBlock {
-    ParticleEffect getBreakingParticle(BlockState state);
+    ParticleOptions getBreakingParticle(BlockState state);
 }

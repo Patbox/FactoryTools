@@ -3,64 +3,63 @@ package eu.pb4.factorytools.api.util;
 import com.mojang.authlib.GameProfile;
 import eu.pb4.factorytools.mixin.player.PlayerEntityAccessor;
 import net.fabricmc.fabric.api.entity.FakePlayer;
-import net.minecraft.block.BlockState;
-import net.minecraft.entity.EntityEquipment;
-import net.minecraft.entity.EquipmentSlot;
-import net.minecraft.entity.ItemEntity;
-import net.minecraft.entity.player.PlayerEntity;
-import net.minecraft.entity.player.PlayerInventory;
-import net.minecraft.inventory.StackReference;
-import net.minecraft.item.ItemStack;
-import net.minecraft.server.world.ServerWorld;
-import net.minecraft.util.Hand;
-import net.minecraft.util.math.BlockPos;
+import net.minecraft.core.BlockPos;
+import net.minecraft.server.level.ServerLevel;
+import net.minecraft.world.InteractionHand;
+import net.minecraft.world.entity.EntityEquipment;
+import net.minecraft.world.entity.EquipmentSlot;
+import net.minecraft.world.entity.SlotAccess;
+import net.minecraft.world.entity.item.ItemEntity;
+import net.minecraft.world.entity.player.Inventory;
+import net.minecraft.world.entity.player.Player;
+import net.minecraft.world.item.ItemStack;
 
 public class FactoryPlayer extends FakePlayer {
-    private final StackReference toolReference;
+    private final SlotAccess toolReference;
 
-    public FactoryPlayer(StackReference toolReference, ServerWorld world, BlockPos pos, GameProfile gameProfile) {
+    public FactoryPlayer(SlotAccess toolReference, ServerLevel world, BlockPos pos, GameProfile gameProfile) {
         super(world, gameProfile);
-        this.setPos(pos.getX(), pos.getY(), pos.getZ());
+        this.setPosRaw(pos.getX(), pos.getY(), pos.getZ());
         this.toolReference = toolReference;
         ((PlayerEntityAccessor) this).setInventory(new FakeInventory(this, this.equipment));
     }
 
     @Override
-    public ItemStack getStackInHand(Hand hand) {
-        if (hand == Hand.MAIN_HAND) {
+    public ItemStack getItemInHand(InteractionHand hand) {
+        if (hand == InteractionHand.MAIN_HAND) {
             return this.toolReference.get();
         }
 
-        return super.getStackInHand(hand);
+        return super.getItemInHand(hand);
     }
 
     @Override
-    public void setStackInHand(Hand hand, ItemStack stack) {
-        if (hand == Hand.MAIN_HAND) {
+    public void setItemInHand(InteractionHand hand, ItemStack stack) {
+        if (hand == InteractionHand.MAIN_HAND) {
             this.toolReference.set(stack);
             return;
         }
 
-        super.setStackInHand(hand, stack);
+        super.setItemInHand(hand, stack);
     }
 
     @Override
-    public ItemStack getEquippedStack(EquipmentSlot slot) {
+    public ItemStack getItemBySlot(EquipmentSlot slot) {
         if (slot == EquipmentSlot.MAINHAND) {
             return this.toolReference.get();
         }
 
-        return super.getEquippedStack(slot);
+        return super.getItemBySlot(slot);
     }
 
     @Override
-    public void equipStack(EquipmentSlot slot, ItemStack stack) {
+    public void setItemSlot(EquipmentSlot slot, ItemStack stack) {
         if (slot == EquipmentSlot.MAINHAND) {
             this.toolReference.set(stack);
             return;
         }
 
-        super.equipStack(slot, stack);
+        super.setItemSlot(slot, stack);
     }
 
     @Override
@@ -73,26 +72,26 @@ public class FactoryPlayer extends FakePlayer {
         return false;
     }
 
-    public class FakeInventory extends PlayerInventory {
-        public FakeInventory(PlayerEntity player, EntityEquipment entityEquipment) {
+    public class FakeInventory extends Inventory {
+        public FakeInventory(Player player, EntityEquipment entityEquipment) {
             super(player, entityEquipment);
         }
 
         @Override
-        public ItemStack getSelectedStack() {
+        public ItemStack getSelectedItem() {
             return FactoryPlayer.this.toolReference.get();
         }
 
         @Override
-        public ItemStack setSelectedStack(ItemStack stack) {
+        public ItemStack setSelectedItem(ItemStack stack) {
             var old = FactoryPlayer.this.toolReference.get();
             FactoryPlayer.this.toolReference.set(stack);
             return old;
         }
 
         @Override
-        public void offer(ItemStack stack, boolean notifiesClient) {
-            FactoryPlayer.this.getEntityWorld().spawnEntity(new ItemEntity(FactoryPlayer.this.getEntityWorld(), FactoryPlayer.this.getX(), FactoryPlayer.this.getY(), FactoryPlayer.this.getZ(), stack));
+        public void placeItemBackInInventory(ItemStack stack, boolean notifiesClient) {
+            FactoryPlayer.this.level().addFreshEntity(new ItemEntity(FactoryPlayer.this.level(), FactoryPlayer.this.getX(), FactoryPlayer.this.getY(), FactoryPlayer.this.getZ(), stack));
         }
 
 

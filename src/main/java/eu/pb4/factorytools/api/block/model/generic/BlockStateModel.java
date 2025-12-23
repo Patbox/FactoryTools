@@ -5,13 +5,12 @@ import eu.pb4.factorytools.api.virtualentity.ItemDisplayElementUtil;
 import eu.pb4.polymer.virtualentity.api.attachment.BlockAwareAttachment;
 import eu.pb4.polymer.virtualentity.api.attachment.HolderAttachment;
 import eu.pb4.polymer.virtualentity.api.elements.ItemDisplayElement;
-import net.minecraft.block.BlockState;
-import net.minecraft.item.ItemDisplayContext;
-import net.minecraft.util.math.BlockPos;
-import net.minecraft.util.math.random.Random;
-
 import java.util.ArrayList;
 import java.util.List;
+import net.minecraft.core.BlockPos;
+import net.minecraft.util.RandomSource;
+import net.minecraft.world.item.ItemDisplayContext;
+import net.minecraft.world.level.block.state.BlockState;
 
 public class BlockStateModel extends BlockModel {
     private final List<ItemDisplayElement> modelElements = new ArrayList<>();
@@ -49,7 +48,7 @@ public class BlockStateModel extends BlockModel {
     }
 
     private void applyModel(List<BlockStateModelManager.ModelGetter> models, BlockPos pos) {
-        var random = Random.create(this.blockState().getRenderingSeed(pos));
+        var random = RandomSource.create(this.blockState().getSeed(pos));
         int i = 0;
         while (models.size() < modelElements.size()) {
             this.removeElement(this.modelElements.removeLast());

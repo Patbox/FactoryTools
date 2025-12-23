@@ -1,7 +1,7 @@
 package eu.pb4.factorytools.impl;
 
-import net.minecraft.predicate.item.ItemPredicate;
-import net.minecraft.util.Identifier;
+import net.minecraft.advancements.criterion.ItemPredicate;
+import net.minecraft.resources.Identifier;
 import org.jetbrains.annotations.Nullable;
 
 public interface ExtraItemPredicate {

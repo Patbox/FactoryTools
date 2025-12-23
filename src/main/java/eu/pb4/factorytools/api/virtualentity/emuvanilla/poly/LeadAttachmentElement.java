@@ -2,18 +2,18 @@ package eu.pb4.factorytools.api.virtualentity.emuvanilla.poly;
 
 import eu.pb4.polymer.virtualentity.api.elements.GenericEntityElement;
 import eu.pb4.polymer.virtualentity.api.tracker.EntityTrackedData;
-import net.minecraft.entity.Entity;
-import net.minecraft.entity.EntityType;
-import net.minecraft.entity.attribute.EntityAttributeInstance;
-import net.minecraft.entity.attribute.EntityAttributes;
-import net.minecraft.network.listener.ClientPlayPacketListener;
-import net.minecraft.network.packet.Packet;
-import net.minecraft.network.packet.s2c.play.EntityAttributesS2CPacket;
-import net.minecraft.server.network.ServerPlayerEntity;
 import org.apache.commons.lang3.function.Consumers;
 
 import java.util.List;
 import java.util.function.Consumer;
+import net.minecraft.network.protocol.Packet;
+import net.minecraft.network.protocol.game.ClientGamePacketListener;
+import net.minecraft.network.protocol.game.ClientboundUpdateAttributesPacket;
+import net.minecraft.server.level.ServerPlayer;
+import net.minecraft.world.entity.Entity;
+import net.minecraft.world.entity.EntityType;
+import net.minecraft.world.entity.ai.attributes.AttributeInstance;
+import net.minecraft.world.entity.ai.attributes.Attributes;
 
 public class LeadAttachmentElement extends GenericEntityElement {
     public LeadAttachmentElement() {
@@ -24,11 +24,11 @@ public class LeadAttachmentElement extends GenericEntityElement {
 
 
     @Override
-    public void startWatching(ServerPlayerEntity player, Consumer<Packet<ClientPlayPacketListener>> packetConsumer) {
+    public void startWatching(ServerPlayer player, Consumer<Packet<ClientGamePacketListener>> packetConsumer) {
         super.startWatching(player, packetConsumer);
-        var scale = new EntityAttributeInstance(EntityAttributes.SCALE, Consumers.nop());
+        var scale = new AttributeInstance(Attributes.SCALE, Consumers.nop());
         scale.setBaseValue(0.25);
-        packetConsumer.accept(new EntityAttributesS2CPacket(this.getEntityId(), List.of(
+        packetConsumer.accept(new ClientboundUpdateAttributesPacket(this.getEntityId(), List.of(
                 scale
         )));
     }

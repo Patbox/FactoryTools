@@ -4,25 +4,24 @@ import eu.pb4.factorytools.api.virtualentity.LodItemDisplayElement;
 import eu.pb4.polymer.common.impl.CommonImplUtils;
 import eu.pb4.polymer.virtualentity.api.tracker.DisplayTrackedData;
 import it.unimi.dsi.fastutil.objects.ObjectOpenCustomHashSet;
-import net.minecraft.entity.data.DataTracker;
-import net.minecraft.item.ItemStack;
-import net.minecraft.network.listener.ClientPlayPacketListener;
-import net.minecraft.network.packet.Packet;
-import net.minecraft.network.packet.s2c.play.EntityTrackerUpdateS2CPacket;
-import net.minecraft.server.network.ServerPlayNetworkHandler;
-import net.minecraft.server.network.ServerPlayerEntity;
+import net.minecraft.network.protocol.Packet;
+import net.minecraft.network.protocol.game.ClientGamePacketListener;
+import net.minecraft.network.protocol.game.ClientboundSetEntityDataPacket;
+import net.minecraft.network.syncher.SynchedEntityData;
+import net.minecraft.server.level.ServerPlayer;
+import net.minecraft.server.network.ServerGamePacketListenerImpl;
 import net.minecraft.util.Util;
-
+import net.minecraft.world.item.ItemStack;
 import java.util.List;
 import java.util.Objects;
 import java.util.function.Consumer;
 
 public class FastItemDisplayElement extends LodItemDisplayElement {
-    private final ObjectOpenCustomHashSet<ServerPlayNetworkHandler> fastPlayers = new ObjectOpenCustomHashSet<>(CommonImplUtils.IDENTITY_HASH);
+    private final ObjectOpenCustomHashSet<ServerGamePacketListenerImpl> fastPlayers = new ObjectOpenCustomHashSet<>(CommonImplUtils.IDENTITY_HASH);
     private ItemStack fastItemStack = ItemStack.EMPTY;
     private int fastItemDistance = Integer.MAX_VALUE;
-    private Packet<ClientPlayPacketListener> fastPacket;
-    private Packet<ClientPlayPacketListener> slowPacket;
+    private Packet<ClientGamePacketListener> fastPacket;
+    private Packet<ClientGamePacketListener> slowPacket;
 
     public FastItemDisplayElement(ItemStack stack) {
         super();
@@ -38,24 +37,24 @@ public class FastItemDisplayElement extends LodItemDisplayElement {
         this.fastPlayers.clear();
         this.getDataTracker().setDirty(DisplayTrackedData.Item.ITEM, true);
         this.fastItemDistance = distance * distance;
-        this.fastPacket = new EntityTrackerUpdateS2CPacket(this.getEntityId(), List.of(DataTracker.SerializedEntry.of(DisplayTrackedData.Item.ITEM, this.fastItemStack)));
+        this.fastPacket = new ClientboundSetEntityDataPacket(this.getEntityId(), List.of(SynchedEntityData.DataValue.create(DisplayTrackedData.Item.ITEM, this.fastItemStack)));
     }
 
     @Override
     public void setItem(ItemStack stack) {
         super.setItem(stack);
-        this.slowPacket = new EntityTrackerUpdateS2CPacket(this.getEntityId(), List.of(DataTracker.SerializedEntry.of(DisplayTrackedData.Item.ITEM, this.getItem())));
+        this.slowPacket = new ClientboundSetEntityDataPacket(this.getEntityId(), List.of(SynchedEntityData.DataValue.create(DisplayTrackedData.Item.ITEM, this.getItem())));
     }
 
     @Override
-    protected void sendChangedTrackerEntries(ServerPlayerEntity player, Consumer<Packet<ClientPlayPacketListener>> packetConsumer) {
+    protected void sendChangedTrackerEntries(ServerPlayer player, Consumer<Packet<ClientGamePacketListener>> packetConsumer) {
         super.sendChangedTrackerEntries(player, packetConsumer);
 
         if (isEnabled) {
-            var d = this.getSquaredDistance(player.networkHandler);
+            var d = this.getSquaredDistance(player.connection);
             if (d > this.fastItemDistance) {
                 packetConsumer.accept(this.fastPacket);
-                this.fastPlayers.add(player.networkHandler);
+                this.fastPlayers.add(player.connection);
             }
         }
     }
@@ -69,17 +68,17 @@ public class FastItemDisplayElement extends LodItemDisplayElement {
 
                 if (d > this.fastItemDistance) {
                     if (this.fastPlayers.add(player)) {
-                        player.sendPacket(this.fastPacket);
+                        player.send(this.fastPacket);
                     }
                 } else {
                     if (this.fastPlayers.remove(player)) {
-                        player.sendPacket(this.slowPacket);
+                        player.send(this.slowPacket);
                     }
                 }
             }
         } else {
             for (var player : this.fastPlayers) {
-                player.sendPacket(this.slowPacket);
+                player.send(this.slowPacket);
             }
             this.fastPlayers.clear();
         }

@@ -9,19 +9,19 @@ import eu.pb4.polymer.resourcepack.extras.api.format.atlas.AtlasAsset;
 import eu.pb4.polymer.resourcepack.extras.api.format.model.ModelAsset;
 import eu.pb4.polymer.resourcepack.extras.api.format.model.ModelElement;
 import eu.pb4.polymer.resourcepack.extras.api.format.model.ModelTransformation;
-import net.minecraft.component.DataComponentTypes;
-import net.minecraft.component.type.MapColorComponent;
-import net.minecraft.item.ItemDisplayContext;
-import net.minecraft.item.ItemStack;
-import net.minecraft.util.Identifier;
-import net.minecraft.util.math.Direction;
-import net.minecraft.util.math.Vec3d;
 import org.jetbrains.annotations.Nullable;
 import org.joml.Vector3f;
 
 import java.util.IdentityHashMap;
 import java.util.function.BiConsumer;
 import java.util.function.Function;
+import net.minecraft.core.Direction;
+import net.minecraft.core.component.DataComponents;
+import net.minecraft.resources.Identifier;
+import net.minecraft.world.item.ItemDisplayContext;
+import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.item.component.MapItemColor;
+import net.minecraft.world.phys.Vec3;
 
 public record PolyModelInstance<T extends EntityModel<?>>(T model, TexturedModelData data, Identifier texture,
                                                           Function<ModelPart, @Nullable ItemStack> modelParts, Function<ModelPart, @Nullable ItemStack> damagedModelParts) {
@@ -42,10 +42,10 @@ public record PolyModelInstance<T extends EntityModel<?>>(T model, TexturedModel
         int id = 0;
         for (var part : model.getParts()) {
             if (part.isEmpty()) continue;
-            var stack = ItemDisplayElementUtil.getModel(texture.withSuffixedPath("/part_" + (id++)));
+            var stack = ItemDisplayElementUtil.getModel(texture.withSuffix("/part_" + (id++)));
             map.put(part, stack);
             stack = stack.copy();
-            stack.set(DataComponentTypes.MAP_COLOR, new MapColorComponent(0xff7e7e));
+            stack.set(DataComponents.MAP_COLOR, new MapItemColor(0xff7e7e));
             damagedMap.put(part, stack);
         }
         return new PolyModelInstance<>(model, data, texture, map::get, damagedMap::get);
@@ -58,7 +58,7 @@ public record PolyModelInstance<T extends EntityModel<?>>(T model, TexturedModel
 
         for (var part : model.getParts()) {
             if (part.isEmpty()) continue;
-            var modelId = texture.withSuffixedPath("/part_" + (id++));
+            var modelId = texture.withSuffix("/part_" + (id++));
             var model = ModelAsset.builder();
             model.texture("txt", texture.toString());
             model.texture("empty", "factorytools:block/empty");
@@ -86,14 +86,14 @@ public record PolyModelInstance<T extends EntityModel<?>>(T model, TexturedModel
                     }
 
 
-                    var b = ModelElement.builder(new Vec3d(min.x, min.y, min.z).multiply(0.25).add(8), new Vec3d(max.x, max.y, max.z).multiply(0.25).add(8));
+                    var b = ModelElement.builder(new Vec3(min.x, min.y, min.z).scale(0.25).add(8), new Vec3(max.x, max.y, max.z).scale(0.25).add(8));
                     for (var dir : Direction.values()) {
                         b.face(dir, "#empty");
                     }
 
-                    var dir = Direction.fromVector((int) quad.direction().x, (int) quad.direction().y, (int) quad.direction().z, null);
+                    var dir = Direction.getNearest((int) quad.direction().x, (int) quad.direction().y, (int) quad.direction().z, null);
 
-                    if ((dir.getDirection() == Direction.AxisDirection.NEGATIVE) == (dir.getAxis() == Direction.Axis.Z)) {
+                    if ((dir.getAxisDirection() == Direction.AxisDirection.NEGATIVE) == (dir.getAxis() == Direction.Axis.Z)) {
                        dir = dir.getOpposite();
                     }
 
@@ -105,7 +105,7 @@ public record PolyModelInstance<T extends EntityModel<?>>(T model, TexturedModel
                 }
             });
 
-            model.transformation(ItemDisplayContext.FIXED, new ModelTransformation(new Vec3d(0, 180, 0), Vec3d.ZERO, new Vec3d(4, 4, 4)));
+            model.transformation(ItemDisplayContext.FIXED, new ModelTransformation(new Vec3(0, 180, 0), Vec3.ZERO, new Vec3(4, 4, 4)));
 
             writer.accept(AssetPaths.model(modelId) + ".json", model.build().toBytes());
         }

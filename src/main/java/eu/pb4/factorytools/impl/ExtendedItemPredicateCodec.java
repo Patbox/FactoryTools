@@ -4,8 +4,8 @@ import com.mojang.datafixers.util.Pair;
 import com.mojang.serialization.Codec;
 import com.mojang.serialization.DataResult;
 import com.mojang.serialization.DynamicOps;
-import net.minecraft.predicate.item.ItemPredicate;
-import net.minecraft.util.Identifier;
+import net.minecraft.advancements.criterion.ItemPredicate;
+import net.minecraft.resources.Identifier;
 
 public record ExtendedItemPredicateCodec(Codec<ItemPredicate> vanillaCodec) implements Codec<ItemPredicate> {
     @Override

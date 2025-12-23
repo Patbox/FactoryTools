@@ -1,11 +1,11 @@
 package eu.pb4.factorytools.api.virtualentity.emuvanilla.model;
 
-import net.minecraft.util.math.Direction;
 import org.jetbrains.annotations.Nullable;
 import org.joml.Vector2f;
 import org.joml.Vector3f;
 
 import java.util.Set;
+import net.minecraft.core.Direction;
 
 public final class ModelCuboidData {
     @Nullable

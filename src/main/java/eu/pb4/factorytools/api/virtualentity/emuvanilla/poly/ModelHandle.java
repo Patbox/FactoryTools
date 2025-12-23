@@ -6,30 +6,30 @@ import eu.pb4.factorytools.api.virtualentity.emuvanilla.model.ModelPart;
 import eu.pb4.factorytools.api.virtualentity.ItemDisplayElementUtil;
 import eu.pb4.polymer.virtualentity.api.ElementHolder;
 import eu.pb4.polymer.virtualentity.api.elements.ItemDisplayElement;
-import net.minecraft.entity.Entity;
-import net.minecraft.entity.EntityDimensions;
-import net.minecraft.entity.LivingEntity;
-import net.minecraft.util.math.Vec3d;
 import org.joml.Matrix4f;
 import org.joml.Matrix4fStack;
 
 import java.util.IdentityHashMap;
 import java.util.Map;
+import net.minecraft.world.entity.Entity;
+import net.minecraft.world.entity.EntityDimensions;
+import net.minecraft.world.entity.LivingEntity;
+import net.minecraft.world.phys.Vec3;
 
 public class ModelHandle<T extends Entity> {
     private final Map<ModelPart, ItemDisplayElement> elements = new IdentityHashMap<>();
     private final ElementHolder holder;
-    private final Vec3d offset;
+    private final Vec3 offset;
     private PolyModelInstance<EntityModel<T>> model;
     private boolean hurt = false;
     private boolean hidden = false;
 
-    public <X extends EntityModel<T>> ModelHandle(ElementHolder holder, PolyModelInstance<X> model, EntityDimensions dimensions, Vec3d offset) {
+    public <X extends EntityModel<T>> ModelHandle(ElementHolder holder, PolyModelInstance<X> model, EntityDimensions dimensions, Vec3 offset) {
         this(holder, offset);
         this.setModel(model, dimensions);
     }
 
-    public ModelHandle(ElementHolder holder, Vec3d offset) {
+    public ModelHandle(ElementHolder holder, Vec3 offset) {
         this.holder = holder;
         this.offset = offset;
     }

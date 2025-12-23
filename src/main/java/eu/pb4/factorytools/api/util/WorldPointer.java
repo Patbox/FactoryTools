@@ -1,24 +1,24 @@
 package eu.pb4.factorytools.api.util;
 
-import net.minecraft.block.BlockState;
-import net.minecraft.block.InventoryProvider;
-import net.minecraft.block.entity.BlockEntity;
-import net.minecraft.inventory.Inventory;
-import net.minecraft.server.world.ServerWorld;
-import net.minecraft.util.math.BlockPos;
-import net.minecraft.world.World;
+import net.minecraft.core.BlockPos;
+import net.minecraft.server.level.ServerLevel;
+import net.minecraft.world.Container;
+import net.minecraft.world.WorldlyContainerHolder;
+import net.minecraft.world.level.Level;
+import net.minecraft.world.level.block.entity.BlockEntity;
+import net.minecraft.world.level.block.state.BlockState;
 
 public final class WorldPointer {
-    private final ServerWorld world;
+    private final ServerLevel world;
     private final BlockPos pos;
     private BlockState blockState;
     private BlockEntity blockEntity;
-    private Inventory inventory;
+    private Container inventory;
     private boolean requireBlockEntityCheck = true;
     private boolean requireInventoryCheck = true;
 
-    public WorldPointer(World world, BlockPos pos) {
-        this.world = (ServerWorld) world;
+    public WorldPointer(Level world, BlockPos pos) {
+        this.world = (ServerLevel) world;
         this.pos = pos;
     }
 
@@ -53,18 +53,18 @@ public final class WorldPointer {
         return (T) this.blockEntity;
     }
 
-    public ServerWorld getWorld() {
+    public ServerLevel getWorld() {
         return this.world;
     }
 
-    public Inventory getInventory() {
+    public Container getInventory() {
         if (this.requireInventoryCheck) {
-            if (this.getBlockState().getBlock() instanceof InventoryProvider provider) {
-                this.inventory = provider.getInventory(this.blockState, this.world, this.pos);
+            if (this.getBlockState().getBlock() instanceof WorldlyContainerHolder provider) {
+                this.inventory = provider.getContainer(this.blockState, this.world, this.pos);
             } else {
                 var be = this.getBlockEntity();
 
-                if (be instanceof Inventory inventory) {
+                if (be instanceof Container inventory) {
                     this.inventory = inventory;
                 }
             }

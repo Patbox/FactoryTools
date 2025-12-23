@@ -1,9 +1,9 @@
 package eu.pb4.factorytools.api.item;
 
 import eu.pb4.polymer.core.api.item.PolymerItem;
-import net.minecraft.item.Item;
-import net.minecraft.item.ItemStack;
-import net.minecraft.item.Items;
+import net.minecraft.world.item.Item;
+import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.item.Items;
 import xyz.nucleoid.packettweaker.PacketContext;
 
 public interface DefinedPolymerItem extends PolymerItem {

@@ -1,29 +1,28 @@
 package eu.pb4.factorytools.api.block;
 
-import net.minecraft.block.BlockState;
-import net.minecraft.block.Waterloggable;
-import net.minecraft.fluid.FluidState;
-import net.minecraft.fluid.Fluids;
-import net.minecraft.item.ItemPlacementContext;
-import net.minecraft.state.property.BooleanProperty;
-import net.minecraft.state.property.Properties;
-import net.minecraft.util.math.BlockPos;
-import net.minecraft.world.WorldAccess;
-import net.minecraft.world.WorldView;
-import net.minecraft.world.tick.ScheduledTickView;
+import net.minecraft.core.BlockPos;
+import net.minecraft.world.item.context.BlockPlaceContext;
+import net.minecraft.world.level.LevelReader;
+import net.minecraft.world.level.ScheduledTickAccess;
+import net.minecraft.world.level.block.SimpleWaterloggedBlock;
+import net.minecraft.world.level.block.state.BlockState;
+import net.minecraft.world.level.block.state.properties.BlockStateProperties;
+import net.minecraft.world.level.block.state.properties.BooleanProperty;
+import net.minecraft.world.level.material.FluidState;
+import net.minecraft.world.level.material.Fluids;
 
-public interface QuickWaterloggable extends Waterloggable {
-    BooleanProperty WATERLOGGED = Properties.WATERLOGGED;
+public interface QuickWaterloggable extends SimpleWaterloggedBlock {
+    BooleanProperty WATERLOGGED = BlockStateProperties.WATERLOGGED;
 
-    default BlockState waterLog(ItemPlacementContext ctx, BlockState state) {
-        FluidState fluidState = ctx.getWorld().getFluidState(ctx.getBlockPos());
-        boolean bl = fluidState.getFluid() == Fluids.WATER;
-        return state.with(WATERLOGGED, bl);
+    default BlockState waterLog(BlockPlaceContext ctx, BlockState state) {
+        FluidState fluidState = ctx.getLevel().getFluidState(ctx.getClickedPos());
+        boolean bl = fluidState.getType() == Fluids.WATER;
+        return state.setValue(WATERLOGGED, bl);
     }
 
-    default void tickWater(BlockState state, WorldView worldView, ScheduledTickView tickView, BlockPos pos) {
-        if ((Boolean)state.get(WATERLOGGED)) {
-            tickView.scheduleFluidTick(pos, Fluids.WATER, Fluids.WATER.getTickRate(worldView));
+    default void tickWater(BlockState state, LevelReader worldView, ScheduledTickAccess tickView, BlockPos pos) {
+        if ((Boolean)state.getValue(WATERLOGGED)) {
+            tickView.scheduleTick(pos, Fluids.WATER, Fluids.WATER.getTickDelay(worldView));
         }
     }
 }

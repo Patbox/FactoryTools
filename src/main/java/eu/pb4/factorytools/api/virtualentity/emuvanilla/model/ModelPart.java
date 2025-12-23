@@ -1,8 +1,6 @@
 package eu.pb4.factorytools.api.virtualentity.emuvanilla.model;
 
 import eu.pb4.factorytools.api.virtualentity.emuvanilla.CubeConsumer;
-import net.minecraft.util.math.Direction;
-import net.minecraft.util.math.random.Random;
 import org.joml.Matrix3f;
 import org.joml.Matrix4fStack;
 import org.joml.Quaternionf;
@@ -12,6 +10,8 @@ import java.util.*;
 import java.util.function.BiConsumer;
 import java.util.function.Consumer;
 import java.util.function.Function;
+import net.minecraft.core.Direction;
+import net.minecraft.util.RandomSource;
 
 public final class ModelPart {
     private final List<Cuboid> cuboids;
@@ -142,7 +142,7 @@ public final class ModelPart {
 
     }
 
-    public Cuboid getRandomCuboid(Random random) {
+    public Cuboid getRandomCuboid(RandomSource random) {
         return this.cuboids.get(random.nextInt(this.cuboids.size()));
     }
 
@@ -279,7 +279,7 @@ public final class ModelPart {
     public record Quad(Vertex[] vertices, Vector3f direction, Direction face) {
 
         public Quad(Vertex[] vertices, float u1, float v1, float u2, float v2, float squishU, float squishV, boolean flip, Direction direction) {
-            this(vertices, direction.getUnitVector(), direction);
+            this(vertices, direction.step(), direction);
             float f = 0.0F / squishU;
             float g = 0.0F / squishV;
             vertices[0] = vertices[0].remap(u2 / squishU - f, v1 / squishV + g);

@@ -3,15 +3,15 @@ package eu.pb4.factorytools.mixin.compat;
 import com.github.fabricservertools.htm.lock.HTMContainerLock;
 import com.github.fabricservertools.htm.api.LockableObject;
 import eu.pb4.factorytools.api.block.entity.LockableBlockEntity;
-import net.minecraft.entity.player.PlayerEntity;
-import net.minecraft.server.network.ServerPlayerEntity;
-import net.minecraft.storage.ReadView;
-import net.minecraft.storage.WriteView;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Overwrite;
 import org.spongepowered.asm.mixin.Unique;
 
 import java.util.Optional;
+import net.minecraft.server.level.ServerPlayer;
+import net.minecraft.world.entity.player.Player;
+import net.minecraft.world.level.storage.ValueInput;
+import net.minecraft.world.level.storage.ValueOutput;
 
 @SuppressWarnings("OverwriteAuthorRequired")
 @Mixin(LockableBlockEntity.class)
@@ -21,20 +21,20 @@ public abstract class htm_LockableBlockEntityMixin implements LockableObject {
     public Optional<HTMContainerLock> htmContainerLock = Optional.empty();
 
     @Overwrite
-    private void readDataMixin(ReadView view) {
+    private void readDataMixin(ValueInput view) {
         htmContainerLock = view.read("htm_lock", HTMContainerLock.CODEC);
     }
 
     @Overwrite
-    private void writeDataMixin(WriteView view) {
+    private void writeDataMixin(ValueOutput view) {
         if (htmContainerLock.isPresent()) {
-            view.put("htm_lock", HTMContainerLock.CODEC, this.htmContainerLock.get());
+            view.store("htm_lock", HTMContainerLock.CODEC, this.htmContainerLock.get());
         }
     }
 
     @Overwrite
-    protected boolean checkUnlockedMixin(PlayerEntity player, boolean display) {
-        return player instanceof ServerPlayerEntity serverPlayer
+    protected boolean checkUnlockedMixin(Player player, boolean display) {
+        return player instanceof ServerPlayer serverPlayer
                 && (display ? htmContainerLock.isEmpty() || htmContainerLock.get().canOpen(serverPlayer) : canOpenX(serverPlayer));
     }
 
@@ -44,7 +44,7 @@ public abstract class htm_LockableBlockEntityMixin implements LockableObject {
     }
 
     @Unique
-    private boolean canOpenX(ServerPlayerEntity player) {
+    private boolean canOpenX(ServerPlayer player) {
         if (htmContainerLock.isEmpty()) return true;
         if (htmContainerLock.get().canOpen(player)) return true;
         return htmContainerLock.get().isOwner(player);

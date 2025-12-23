@@ -5,15 +5,14 @@ import eu.pb4.factorytools.api.virtualentity.ItemDisplayElementUtil;
 import eu.pb4.polymer.virtualentity.api.attachment.BlockAwareAttachment;
 import eu.pb4.polymer.virtualentity.api.attachment.HolderAttachment;
 import eu.pb4.polymer.virtualentity.api.elements.ItemDisplayElement;
-import net.minecraft.block.AbstractSignBlock;
-import net.minecraft.block.Block;
-import net.minecraft.block.BlockState;
-import net.minecraft.item.ItemStack;
-import net.minecraft.util.Identifier;
-import net.minecraft.util.math.BlockPos;
-
 import java.util.HashMap;
 import java.util.Map;
+import net.minecraft.core.BlockPos;
+import net.minecraft.resources.Identifier;
+import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.level.block.Block;
+import net.minecraft.world.level.block.SignBlock;
+import net.minecraft.world.level.block.state.BlockState;
 
 public class SignModel extends BlockModel {
     private static final Map<Block, ItemStack> MODEL_MAP = new HashMap<>();
@@ -27,7 +26,7 @@ public class SignModel extends BlockModel {
     }
 
     protected void updateRotation(BlockState state) {
-        this.main.setYaw(state.getBlock() instanceof AbstractSignBlock signBlock ? signBlock.getRotationDegrees(state) : 0);
+        this.main.setYaw(state.getBlock() instanceof SignBlock signBlock ? signBlock.getYRotationDegrees(state) : 0);
     }
 
     @Override

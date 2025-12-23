@@ -13,10 +13,10 @@ import net.fabricmc.fabric.api.event.player.AttackBlockCallback;
 import net.fabricmc.fabric.api.event.player.PlayerBlockBreakEvents;
 import net.fabricmc.fabric.api.event.registry.RegistryEntryAddedCallback;
 import net.fabricmc.loader.api.FabricLoader;
-import net.minecraft.registry.Registries;
-import net.minecraft.server.network.ServerPlayerEntity;
-import net.minecraft.util.ActionResult;
-import net.minecraft.util.Hand;
+import net.minecraft.core.registries.BuiltInRegistries;
+import net.minecraft.server.level.ServerPlayer;
+import net.minecraft.world.InteractionHand;
+import net.minecraft.world.InteractionResult;
 
 public class ModInit implements ModInitializer {
     public static final boolean DEV_ENV = FabricLoader.getInstance().isDevelopmentEnvironment();
@@ -27,28 +27,28 @@ public class ModInit implements ModInitializer {
         PolymerBlockUtils.BREAKING_PROGRESS_UPDATE.register(VirtualDestroyStage::updateState);
 
         PlayerBlockBreakEvents.AFTER.register((world, player, pos, state, blockEntity) -> {
-            if (player instanceof ServerPlayerEntity serverPlayer) {
-                ((ServerPlayNetExtF) serverPlayer.networkHandler).factorytools$getVirtualDestroyStage().setState(-1);
+            if (player instanceof ServerPlayer serverPlayer) {
+                ((ServerPlayNetExtF) serverPlayer.connection).factorytools$getVirtualDestroyStage().setState(-1);
             }
         });
 
         AttackBlockCallback.EVENT.register((player, world, hand, pos, direction) -> {
             var state = world.getBlockState(pos);
 
-            if (state.getBlock() instanceof AttackableBlock attackableBlock && hand == Hand.MAIN_HAND) {
+            if (state.getBlock() instanceof AttackableBlock attackableBlock && hand == InteractionHand.MAIN_HAND) {
                 return attackableBlock.onPlayerAttack(state, player, world, pos, direction);
             }
 
-            return ActionResult.PASS;
+            return InteractionResult.PASS;
         });
 
-        for (var item : Registries.ITEM) {
+        for (var item : BuiltInRegistries.ITEM) {
             if (item instanceof RegistryCallbackItem modeledPolymerItem) {
-                modeledPolymerItem.onRegistered(Registries.ITEM.getId(item));
+                modeledPolymerItem.onRegistered(BuiltInRegistries.ITEM.getKey(item));
                 ItemDisplayElementUtil.getModel(item);
             }
         }
-        RegistryEntryAddedCallback.event(Registries.ITEM).register((rawId, id, item) -> {
+        RegistryEntryAddedCallback.event(BuiltInRegistries.ITEM).register((rawId, id, item) -> {
             if (item instanceof RegistryCallbackItem modeledPolymerItem) {
                 modeledPolymerItem.onRegistered(id);
                 ItemDisplayElementUtil.getModel(item);

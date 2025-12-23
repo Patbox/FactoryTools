@@ -2,11 +2,10 @@ package eu.pb4.factorytools.api.virtualentity.emuvanilla.model;
 
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Lists;
-import net.minecraft.util.math.Direction;
-
 import java.util.EnumSet;
 import java.util.List;
 import java.util.Set;
+import net.minecraft.core.Direction;
 
 public class ModelPartBuilder {
     private static final Set<Direction> ALL_DIRECTIONS = EnumSet.allOf(Direction.class);

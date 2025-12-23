@@ -1,11 +1,11 @@
 package eu.pb4.factorytools.mixin;
 
-import net.minecraft.item.ItemUsageContext;
-import net.minecraft.util.hit.BlockHitResult;
+import net.minecraft.world.item.context.UseOnContext;
+import net.minecraft.world.phys.BlockHitResult;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.gen.Invoker;
 
-@Mixin(ItemUsageContext.class)
+@Mixin(UseOnContext.class)
 public interface ItemUsageContextAccessor {
     @Invoker
     BlockHitResult callGetHitResult();
