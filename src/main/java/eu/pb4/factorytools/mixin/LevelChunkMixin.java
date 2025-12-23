@@ -10,7 +10,7 @@ import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 
 @Mixin(LevelChunk.class)
-public class WorldChunkMixin {
+public class LevelChunkMixin {
     @Inject(method = "addGameEventListener", at = @At("TAIL"))
     private void callMethod(BlockEntity blockEntity, ServerLevel world, CallbackInfo ci) {
         if (blockEntity instanceof BlockEntityExtraListener listener) {

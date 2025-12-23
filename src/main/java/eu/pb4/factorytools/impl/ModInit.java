@@ -17,6 +17,7 @@ import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.InteractionResult;
+import org.spongepowered.asm.mixin.MixinEnvironment;
 
 public class ModInit implements ModInitializer {
     public static final boolean DEV_ENV = FabricLoader.getInstance().isDevelopmentEnvironment();

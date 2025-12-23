@@ -1,6 +1,6 @@
 package eu.pb4.factorytools.api.block;
 
-import eu.pb4.factorytools.mixin.ItemUsageContextAccessor;
+import eu.pb4.factorytools.mixin.UseOnContextAccessor;
 import eu.pb4.polymer.core.api.block.PolymerBlock;
 import org.jetbrains.annotations.Nullable;
 
@@ -100,7 +100,7 @@ public abstract class MultiBlock extends Block implements PolymerBlock {
 
     public boolean place(BlockPlaceContext context, BlockState state) {
         var startPlane = context.getClickedFace();
-        var hit = ((ItemUsageContextAccessor) context).callGetHitResult();
+        var hit = ((UseOnContextAccessor) context).callGetHitResult();
         var vec3d = hit.getLocation().subtract(hit.getBlockPos().getX(), hit.getBlockPos().getY(), hit.getBlockPos().getZ());
         var mut = context.getClickedPos().mutable();
 

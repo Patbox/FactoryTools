@@ -7,7 +7,7 @@ import org.spongepowered.asm.mixin.Mutable;
 import org.spongepowered.asm.mixin.gen.Accessor;
 
 @Mixin(Player.class)
-public interface PlayerEntityAccessor {
+public interface PlayerAccessor {
     @Mutable
     @Accessor
     void setInventory(Inventory inventory);

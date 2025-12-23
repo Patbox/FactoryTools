@@ -10,7 +10,7 @@ import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 
 @Mixin(RedStoneWireBlock.class)
-public class RedstoneWireBlockMixin {
+public class RedStoneWireBlockMixin {
     @Inject(method = "shouldConnectTo(Lnet/minecraft/world/level/block/state/BlockState;Lnet/minecraft/core/Direction;)Z", at = @At("HEAD"), cancellable = true)
     private static void addDirectionalConnectivity(BlockState state, Direction dir, CallbackInfoReturnable<Boolean> cir) {
         if (state.getBlock() instanceof RedstoneConnectable connectable) {

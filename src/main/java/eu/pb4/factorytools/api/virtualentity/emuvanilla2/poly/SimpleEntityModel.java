@@ -1,8 +1,8 @@
-package eu.pb4.factorytools.api.virtualentity.emuvanilla.poly;
+package eu.pb4.factorytools.api.virtualentity.emuvanilla2.poly;
 
-import eu.pb4.factorytools.api.virtualentity.emuvanilla.EntityModelTransforms;
-import eu.pb4.factorytools.api.virtualentity.emuvanilla.PolyModelInstance;
-import eu.pb4.factorytools.api.virtualentity.emuvanilla.model.EntityModel;
+import eu.pb4.factorytools.api.virtualentity.emuvanilla2.EntityModelTransforms;
+import eu.pb4.factorytools.api.virtualentity.emuvanilla2.PolyModelInstance;
+import eu.pb4.factorytools.api.virtualentity.emuvanilla2.model.EntityModel;
 import eu.pb4.factorytools.mixin.LivingEntityAccessor;
 import eu.pb4.polymer.virtualentity.api.ElementHolder;
 import eu.pb4.polymer.virtualentity.api.elements.InteractionElement;

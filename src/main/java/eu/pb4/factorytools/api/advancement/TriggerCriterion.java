@@ -15,7 +15,7 @@ public class TriggerCriterion extends SimpleCriterionTrigger<TriggerCriterion.Co
     }
 
     public static void trigger(ServerPlayer player, Identifier identifier) {
-        FactoryAdvancementCriteria.TRIGGER.trigger(player, condition -> condition.identifier.equals(identifier));
+        FactoryAdvancementCriteria.TRIGGER.trigger(player, condition -> condition.equals(identifier));
     }
 
     @Override
@@ -23,7 +23,7 @@ public class TriggerCriterion extends SimpleCriterionTrigger<TriggerCriterion.Co
         return Condition.CODEC;
     }
 
-    public record Condition(Identifier identifier) implements Conditions {
+    public record Condition(Identifier identifier) implements SimpleInstance {
         public static final Codec<Condition> CODEC = RecordCodecBuilder.create(instance -> instance.group(
                 Identifier.CODEC.fieldOf("trigger").forGetter(Condition::identifier)
         ).apply(instance, Condition::new));

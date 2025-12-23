@@ -1,7 +1,7 @@
 package eu.pb4.factorytools.api.util;
 
 import com.mojang.authlib.GameProfile;
-import eu.pb4.factorytools.mixin.player.PlayerEntityAccessor;
+import eu.pb4.factorytools.mixin.player.PlayerAccessor;
 import net.fabricmc.fabric.api.entity.FakePlayer;
 import net.minecraft.core.BlockPos;
 import net.minecraft.server.level.ServerLevel;
@@ -21,7 +21,7 @@ public class FactoryPlayer extends FakePlayer {
         super(world, gameProfile);
         this.setPosRaw(pos.getX(), pos.getY(), pos.getZ());
         this.toolReference = toolReference;
-        ((PlayerEntityAccessor) this).setInventory(new FakeInventory(this, this.equipment));
+        ((PlayerAccessor) this).setInventory(new FakeInventory(this, this.equipment));
     }
 
     @Override

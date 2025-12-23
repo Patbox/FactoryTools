@@ -10,7 +10,6 @@ import it.unimi.dsi.fastutil.floats.FloatList;
 import net.minecraft.core.Direction;
 import net.minecraft.resources.Identifier;
 import net.minecraft.util.Mth;
-import net.minecraft.util.math.*;
 import net.minecraft.world.phys.Vec3;
 import java.util.EnumMap;
 import java.util.List;

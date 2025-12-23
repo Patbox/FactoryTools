@@ -7,7 +7,7 @@ import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Unique;
 
 @Mixin(ServerGamePacketListenerImpl.class)
-public abstract class ServerPlayNetworkHandlerMixin implements ServerPlayNetExtF {
+public abstract class ServerGamePacketListenerImplMixin implements ServerPlayNetExtF {
     @Unique
     private final VirtualDestroyStage virtualDestroyStage = new VirtualDestroyStage();
 

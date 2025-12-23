@@ -21,7 +21,7 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
  * Based on carpet implementation
  */
 @Mixin(PistonStructureResolver.class)
-public class PistonHandlerMixin {
+public class PistonStructureResolverMixin {
 
     @Shadow
     @Final
