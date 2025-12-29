@@ -48,12 +48,30 @@ public class LodItemDisplayElement extends ItemDisplayElement {
         super();
     }
 
+    @Deprecated
     public static LodItemDisplayElement createSimple(Item model) {
         return createSimple(ItemDisplayElementUtil.getModel(model));
     }
 
+    @Deprecated
     public static LodItemDisplayElement createSimple(Identifier model) {
         return createSimple(ItemDisplayElementUtil.getModel(model));
+    }
+
+    public static LodItemDisplayElement createSolid(Item model) {
+        return createSimple(ItemDisplayElementUtil.getSolidModel(model));
+    }
+
+    public static LodItemDisplayElement createSolid(Identifier model) {
+        return createSimple(ItemDisplayElementUtil.getSolidModel(model));
+    }
+
+    public static LodItemDisplayElement createTransparent(Item model) {
+        return createSimple(ItemDisplayElementUtil.getTransparentModel(model));
+    }
+
+    public static LodItemDisplayElement createTransparent(Identifier model) {
+        return createSimple(ItemDisplayElementUtil.getTransparentModel(model));
     }
 
     public static LodItemDisplayElement createSimple(ItemStack model) {
@@ -74,12 +92,32 @@ public class LodItemDisplayElement extends ItemDisplayElement {
         element.nearDistanceSquared = 50 * 50 * qualityMultiplier * qualityMultiplier;
         return element;
     }
+
+    @Deprecated
     public static LodItemDisplayElement createSimple(Item model, int updateRate) {
         return createSimple(ItemDisplayElementUtil.getModel(model), updateRate);
     }
 
+    @Deprecated
     public static LodItemDisplayElement createSimple(Identifier model, int updateRate) {
         return createSimple(ItemDisplayElementUtil.getModel(model), updateRate);
+    }
+
+
+    public static LodItemDisplayElement createSolid(Item model, int updateRate) {
+        return createSimple(ItemDisplayElementUtil.getSolidModel(model), updateRate);
+    }
+
+    public static LodItemDisplayElement createSolid(Identifier model, int updateRate) {
+        return createSimple(ItemDisplayElementUtil.getSolidModel(model), updateRate);
+    }
+
+    public static LodItemDisplayElement createTransparent(Item model, int updateRate) {
+        return createSimple(ItemDisplayElementUtil.getTransparentModel(model), updateRate);
+    }
+
+    public static LodItemDisplayElement createTransparent(Identifier model, int updateRate) {
+        return createSimple(ItemDisplayElementUtil.getTransparentModel(model), updateRate);
     }
 
     public static LodItemDisplayElement createSimple(ItemStack model, int updateRate) {

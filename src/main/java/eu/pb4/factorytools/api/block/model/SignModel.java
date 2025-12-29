@@ -38,7 +38,16 @@ public class SignModel extends BlockModel {
         }
     }
 
+    @Deprecated
     public static void setModel(Block block, Identifier model) {
-        MODEL_MAP.put(block, ItemDisplayElementUtil.getModel(model));
+        MODEL_MAP.put(block, ItemDisplayElementUtil.getTransparentModel(model));
+    }
+
+    public static void setSolidModel(Block block, Identifier model) {
+        MODEL_MAP.put(block, ItemDisplayElementUtil.getSolidModel(model));
+    }
+
+    public static void setTransparentModel(Block block, Identifier model) {
+        MODEL_MAP.put(block, ItemDisplayElementUtil.getTransparentModel(model));
     }
 }

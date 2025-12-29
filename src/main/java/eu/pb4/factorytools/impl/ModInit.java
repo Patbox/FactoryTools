@@ -46,13 +46,11 @@ public class ModInit implements ModInitializer {
         for (var item : BuiltInRegistries.ITEM) {
             if (item instanceof RegistryCallbackItem modeledPolymerItem) {
                 modeledPolymerItem.onRegistered(BuiltInRegistries.ITEM.getKey(item));
-                ItemDisplayElementUtil.getModel(item);
             }
         }
         RegistryEntryAddedCallback.event(BuiltInRegistries.ITEM).register((rawId, id, item) -> {
             if (item instanceof RegistryCallbackItem modeledPolymerItem) {
                 modeledPolymerItem.onRegistered(id);
-                ItemDisplayElementUtil.getModel(item);
             }
         });
 

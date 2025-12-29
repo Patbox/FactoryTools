@@ -33,6 +33,7 @@ import org.slf4j.LoggerFactory;
 import java.nio.charset.StandardCharsets;
 import java.util.*;
 import java.util.function.BiConsumer;
+import java.util.function.Function;
 import java.util.function.Predicate;
 
 public class BlockStateModelManager {
@@ -49,7 +50,19 @@ public class BlockStateModelManager {
         return PARTICLE.getOrDefault(state, ParticleTypes.ANGRY_VILLAGER);
     }
 
+    public static void addSolidBlock(Identifier identifier, Block block) {
+        addBlock(identifier, block, ItemDisplayElementUtil::getSolidModel);
+    }
+    public static void addTransparentBlock(Identifier identifier, Block block) {
+        addBlock(identifier, block, ItemDisplayElementUtil::getTransparentModel);
+    }
+
+    @Deprecated
     public static void addBlock(Identifier identifier, Block block) {
+        addBlock(identifier, block, ItemDisplayElementUtil::getTransparentModel);
+    }
+
+    private static void addBlock(Identifier identifier, Block block, Function<Identifier, ItemStack> modelGetter) {
         try {
             var rand = RandomSource.create(123);
             var data = ResourceUtils.getJarData("assets/" + identifier.getNamespace() + "/blockstates/" + identifier.getPath() + ".json");
@@ -59,7 +72,7 @@ public class BlockStateModelManager {
 
             if (modelDef.variants().isPresent()) {
                 var list = new ArrayList<Tuple<BlockStatePredicate, List<ModelData>>>();
-                parseVariants(block, modelDef.variants().get(), list);
+                parseVariants(block, modelDef.variants().get(), list, modelGetter);
 
                 for (var pair : list) {
                     for (var state : block.getStateDefinition().getPossibleStates()) {
@@ -75,7 +88,7 @@ public class BlockStateModelManager {
 
             if (modelDef.multipart().isPresent()) {
                 var list = new ArrayList<Tuple<Predicate<BlockState>, List<ModelData>>>();
-                parseMultipart(block, modelDef.multipart().get(), list);
+                parseMultipart(block, modelDef.multipart().get(), list, modelGetter);
 
                 for (var pair : list) {
                     for (var state : block.getStateDefinition().getPossibleStates()) {
@@ -98,7 +111,7 @@ public class BlockStateModelManager {
         }
     }
 
-    private static void parseMultipart(Block block, List<StateMultiPartDefinition> multiPartDefinition, ArrayList<Tuple<Predicate<BlockState>, List<ModelData>>> list) {
+    private static void parseMultipart(Block block, List<StateMultiPartDefinition> multiPartDefinition, ArrayList<Tuple<Predicate<BlockState>, List<ModelData>>> list, Function<Identifier, ItemStack> modelGetter) {
         for (var part : multiPartDefinition) {
             Predicate<BlockState> preds;
 
@@ -109,7 +122,7 @@ public class BlockStateModelManager {
                 preds = parsePredicate(block, when);
             }
 
-            var modelData = parseBaseVariants(part.apply());
+            var modelData = parseBaseVariants(part.apply(), modelGetter);
             list.add(new Tuple<>(preds, modelData));
         }
     }
@@ -194,9 +207,9 @@ public class BlockStateModelManager {
         return term.negated() ? value -> !value.equals(parsedValue) : value -> value.equals(parsedValue);
     }
 
-    private static void parseVariants(Block block, Map<String, List<StateModelVariant>> modelDef, ArrayList<Tuple<BlockStatePredicate, List<ModelData>>> list) {
+    private static void parseVariants(Block block, Map<String, List<StateModelVariant>> modelDef, ArrayList<Tuple<BlockStatePredicate, List<ModelData>>> list, Function<Identifier, ItemStack> modelGetter) {
         parseVariants(block, modelDef, (a, b) -> {
-            var modelData = parseBaseVariants(b);
+            var modelData = parseBaseVariants(b, modelGetter);
             list.add(new Tuple<>(a, modelData));
         });
     }
@@ -226,19 +239,19 @@ public class BlockStateModelManager {
         }
     }
 
-    private static List<ModelData> parseBaseVariants(List<StateModelVariant> value) {
+    private static List<ModelData> parseBaseVariants(List<StateModelVariant> value, Function<Identifier, ItemStack> modelGetter) {
         var modelData = new ArrayList<ModelData>();
 
         for (var v : value) {
             if (v.uvlock()) {
                 var modelId = v.model().withSuffix("_uvlock_" + v.x() + "_" + v.y());
 
-                var stack = ItemDisplayElementUtil.getModel(modelId);
+                var stack = modelGetter.apply(modelId);
                 modelData.add(new ModelData(stack, new Quaternionf(), v.weigth()));
 
                 UV_LOCKED_MODELS.computeIfAbsent(v.model().getNamespace(), x -> new HashMap<>()).computeIfAbsent(v.model().getPath(), x -> new ArrayList<>()).add(v);
             } else {
-                var stack = ItemDisplayElementUtil.getModel(v.model());
+                var stack = modelGetter.apply(v.model());
                 modelData.add(new ModelData(stack, new Quaternionf()
                         .rotateY(-Mth.DEG_TO_RAD * v.y())
                         .rotateX(Mth.DEG_TO_RAD * v.x()),

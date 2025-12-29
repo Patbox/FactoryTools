@@ -61,7 +61,6 @@ public record PolyModelInstance<T extends EntityModel<?>>(T model, LayerDefiniti
             var modelId = texture.withSuffix("/part_" + (id++));
             var model = ModelAsset.builder();
             model.texture("txt", texture.toString());
-            model.texture("empty", "factorytools:block/empty");
             model.texture("particle", "#txt");
 
             part.forEachCuboid(cuboid -> {
@@ -89,9 +88,6 @@ public record PolyModelInstance<T extends EntityModel<?>>(T model, LayerDefiniti
 
 
                     var b = ModelElement.builder(new Vec3(min.x, min.y, min.z).scale(0.25).add(8), new Vec3(max.x, max.y, max.z).scale(0.25).add(8));
-                    for (var dir : Direction.values()) {
-                        b.face(dir, "#empty");
-                    }
 
                     var dir = Direction.getNearest((int) quad.normal().x(), (int) quad.normal().y(), (int) quad.normal().z(), null);
 
