@@ -18,6 +18,10 @@ repositories {
 	// for more information about repositories.
 	maven { url 'https://maven.nucleoid.xyz' }
 	maven { url "https://api.modrinth.com/maven/" }
+	maven {
+		name = 'ParchmentMC'
+		url = 'https://maven.parchmentmc.org'
+	}
 	mavenLocal()
 }
 
