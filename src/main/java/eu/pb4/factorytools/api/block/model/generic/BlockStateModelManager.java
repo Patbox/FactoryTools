@@ -130,13 +130,13 @@ public class BlockStateModelManager {
     @SuppressWarnings({"ReassignedVariable", "unchecked", "rawtypes", "StatementWithEmptyBody"})
     private static Predicate<BlockState> parsePredicate(Block block, StateMultiPartDefinition.Condition when) {
         if (when instanceof StateMultiPartDefinition.KeyValueCondition keyVal) {
-            var predicate = BlockStatePredicate.forBlock(block);
+            Predicate<BlockState> predicate = x -> true;
             for (var pair : keyVal.tests().entrySet()) {
                 var prop = (Property) block.getStateDefinition().getProperty(pair.getKey());
                 if (prop == null) {
                     continue;
                 }
-                predicate.where(prop, parseTerms(pair.getValue().entries(), block, prop));
+                predicate = predicate.and(parseTerms(pair.getValue().entries(), block, prop));
             }
             return predicate;
         } else if (when instanceof StateMultiPartDefinition.CombinedCondition combinedCondition) {
