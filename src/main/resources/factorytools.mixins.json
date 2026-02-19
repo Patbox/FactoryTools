@@ -8,17 +8,18 @@
     "BlockMixin",
     "ItemPredicateBuilderMixin",
     "ItemPredicateMixin",
-    "UseOnContextAccessor",
+    "LevelChunkMixin",
     "LivingEntityAccessor",
     "PistonStructureResolverMixin",
     "RedStoneWireBlockMixin",
-    "LevelChunkMixin",
+    "UseOnContextAccessor",
     "compat.htm_LockableBlockEntityMixin",
     "player.BlockItemMixin",
+    "player.InventoryMixin",
     "player.PlayerAccessor",
-    "player.ServerPlayerMixin",
+    "player.ServerGamePacketListenerImplMixin",
     "player.ServerPlayerGameModeMixin",
-    "player.ServerGamePacketListenerImplMixin"
+    "player.ServerPlayerMixin"
   ],
   "client": [
   ],

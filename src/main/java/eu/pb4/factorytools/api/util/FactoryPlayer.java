@@ -4,6 +4,7 @@ import com.mojang.authlib.GameProfile;
 import eu.pb4.factorytools.mixin.player.PlayerAccessor;
 import net.fabricmc.fabric.api.entity.FakePlayer;
 import net.minecraft.core.BlockPos;
+import net.minecraft.core.NonNullList;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.entity.EntityEquipment;
@@ -13,6 +14,7 @@ import net.minecraft.world.entity.item.ItemEntity;
 import net.minecraft.world.entity.player.Inventory;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
+import org.jspecify.annotations.NonNull;
 
 public class FactoryPlayer extends FakePlayer {
     private final SlotAccess toolReference;
@@ -21,7 +23,11 @@ public class FactoryPlayer extends FakePlayer {
         super(world, gameProfile);
         this.setPosRaw(pos.getX(), pos.getY(), pos.getZ());
         this.toolReference = toolReference;
-        ((PlayerAccessor) this).setInventory(new FakeInventory(this, this.equipment));
+        ((PlayerAccessor) this).setInventory(new FakeInventory(this, this.equipment, toolReference));
+    }
+
+    public FakeInventory getFakeInventory() {
+        return (FakeInventory) super.getInventory();
     }
 
     @Override
@@ -73,17 +79,22 @@ public class FactoryPlayer extends FakePlayer {
     }
 
     public class FakeInventory extends Inventory {
-        public FakeInventory(Player player, EntityEquipment entityEquipment) {
+        SlotAccess toolReference;
+        private NonNullList<ItemStack> originalList;
+        private boolean toolWrappingEnabled = true;
+
+        public FakeInventory(Player player, EntityEquipment entityEquipment, SlotAccess toolReference) {
             super(player, entityEquipment);
+            this.toolReference = toolReference;
         }
 
         @Override
-        public ItemStack getSelectedItem() {
+        public @NonNull ItemStack getSelectedItem() {
             return FactoryPlayer.this.toolReference.get();
         }
 
         @Override
-        public ItemStack setSelectedItem(ItemStack stack) {
+        public @NonNull ItemStack setSelectedItem(ItemStack stack) {
             var old = FactoryPlayer.this.toolReference.get();
             FactoryPlayer.this.toolReference.set(stack);
             return old;
@@ -94,6 +105,44 @@ public class FactoryPlayer extends FakePlayer {
             FactoryPlayer.this.level().addFreshEntity(new ItemEntity(FactoryPlayer.this.level(), FactoryPlayer.this.getX(), FactoryPlayer.this.getY(), FactoryPlayer.this.getZ(), stack));
         }
 
+        @Override
+        public void setSelectedSlot(int slot) {}
+
+        public boolean toolWrappingEnabled() {
+            return this.toolWrappingEnabled;
+        }
+
+        public void setToolWrapping(boolean toolWrapping) {
+            this.toolWrappingEnabled = toolWrapping;
+        }
+
+        public NonNullList<ItemStack> getOriginalList() {
+            return this.originalList;
+        }
+
+        public NonNullList<ItemStack> wrapList(NonNullList<ItemStack> original) {
+            this.originalList = original;
+            return new NonNullList<>(original, ItemStack.EMPTY) {
+                @Override
+                public ItemStack set(int i, ItemStack object) {
+                    if (i == 0 && toolWrappingEnabled) {
+                        var old = toolReference.get();
+                        toolReference.set(object);
+                        return old;
+                    }
+                    return super.set(i, object);
+                }
+
+                @Override
+                public ItemStack get(int i) {
+                    if (i == 0 && toolWrappingEnabled) {
+                        return toolReference.get();
+                    }
+
+                    return super.get(i);
+                }
+            };
+        }
 
         /*
         @Override
