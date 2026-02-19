@@ -10,12 +10,12 @@ import net.minecraft.resources.Identifier;
 import net.minecraft.server.level.ServerPlayer;
 
 public class TriggerCriterion extends SimpleCriterionTrigger<TriggerCriterion.Condition> {
-    public static Criterion<?> of(Identifier powerHandCrank) {
-        return FactoryAdvancementCriteria.TRIGGER.createCriterion(new Condition(powerHandCrank));
+    public static Criterion<?> of(Identifier id) {
+        return FactoryAdvancementCriteria.TRIGGER.createCriterion(new Condition(id));
     }
 
     public static void trigger(ServerPlayer player, Identifier identifier) {
-        FactoryAdvancementCriteria.TRIGGER.trigger(player, condition -> condition.equals(identifier));
+        FactoryAdvancementCriteria.TRIGGER.trigger(player, condition -> condition.identifier().equals(identifier));
     }
 
     @Override
