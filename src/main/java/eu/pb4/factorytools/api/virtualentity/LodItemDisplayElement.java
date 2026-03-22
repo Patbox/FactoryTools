@@ -1,9 +1,12 @@
 package eu.pb4.factorytools.api.virtualentity;
 
+import eu.pb4.polymer.virtualentity.api.data.DisplayEntityData;
+import eu.pb4.polymer.virtualentity.api.data.SimpleSynchedEntityData;
+import eu.pb4.polymer.virtualentity.api.data.SynchedEntityDataLike;
 import eu.pb4.polymer.virtualentity.api.elements.ItemDisplayElement;
-import eu.pb4.polymer.virtualentity.api.tracker.DataTrackerLike;
-import eu.pb4.polymer.virtualentity.api.tracker.DisplayTrackedData;
-import eu.pb4.polymer.virtualentity.api.tracker.SimpleDataTracker;
+
+
+
 import org.jetbrains.annotations.Nullable;
 
 import java.util.*;
@@ -20,19 +23,19 @@ import net.minecraft.world.item.ItemStack;
 
 public class LodItemDisplayElement extends ItemDisplayElement {
     protected static final Set<EntityDataAccessor<?>> DEFAULT_LOD = Set.of(
-            DisplayTrackedData.START_INTERPOLATION,
-            DisplayTrackedData.INTERPOLATION_DURATION,
-            DisplayTrackedData.TRANSLATION,
-            DisplayTrackedData.SCALE,
-            DisplayTrackedData.LEFT_ROTATION,
-            DisplayTrackedData.RIGHT_ROTATION
+            DisplayEntityData.START_INTERPOLATION,
+            DisplayEntityData.INTERPOLATION_DURATION,
+            DisplayEntityData.TRANSLATION,
+            DisplayEntityData.SCALE,
+            DisplayEntityData.LEFT_ROTATION,
+            DisplayEntityData.RIGHT_ROTATION
     );
     public static boolean isEnabled = true;
     public static boolean isDisabled = false;
     // MovingElementTrackers
-    public final DataTrackerLike nearTracker = new SimpleDataTracker(this.getEntityType());
-    public final DataTrackerLike mediumTracker = new SimpleDataTracker(this.getEntityType());
-    public final DataTrackerLike mainTracker = new SimpleDataTracker(this.getEntityType());
+    public final SynchedEntityDataLike nearSyncedData = new SimpleSynchedEntityData(this.getEntityType());
+    public final SynchedEntityDataLike mediumSyncedData = new SimpleSynchedEntityData(this.getEntityType());
+    public final SynchedEntityDataLike mainSyncedData = new SimpleSynchedEntityData(this.getEntityType());
 
     protected Set<EntityDataAccessor<?>> lodTracked = DEFAULT_LOD;
     private int updateTick = 0;
@@ -41,37 +44,19 @@ public class LodItemDisplayElement extends ItemDisplayElement {
 
     public LodItemDisplayElement(ItemStack stack) {
         super();
-        this.getDataTracker().set(DisplayTrackedData.Item.ITEM, stack);
+        this.getSyncedData().set(DisplayEntityData.Item.ITEM, stack);
     }
 
     public LodItemDisplayElement() {
         super();
     }
 
-    @Deprecated
     public static LodItemDisplayElement createSimple(Item model) {
-        return createSimple(ItemDisplayElementUtil.getModel(model));
+        return createSimple(ItemDisplayElementUtil.getModel(model).get());
     }
 
-    @Deprecated
     public static LodItemDisplayElement createSimple(Identifier model) {
-        return createSimple(ItemDisplayElementUtil.getModel(model));
-    }
-
-    public static LodItemDisplayElement createSolid(Item model) {
-        return createSimple(ItemDisplayElementUtil.getSolidModel(model));
-    }
-
-    public static LodItemDisplayElement createSolid(Identifier model) {
-        return createSimple(ItemDisplayElementUtil.getSolidModel(model));
-    }
-
-    public static LodItemDisplayElement createTransparent(Item model) {
-        return createSimple(ItemDisplayElementUtil.getTransparentModel(model));
-    }
-
-    public static LodItemDisplayElement createTransparent(Identifier model) {
-        return createSimple(ItemDisplayElementUtil.getTransparentModel(model));
+        return createSimple(ItemDisplayElementUtil.getModel(model).get());
     }
 
     public static LodItemDisplayElement createSimple(ItemStack model) {
@@ -93,31 +78,12 @@ public class LodItemDisplayElement extends ItemDisplayElement {
         return element;
     }
 
-    @Deprecated
     public static LodItemDisplayElement createSimple(Item model, int updateRate) {
-        return createSimple(ItemDisplayElementUtil.getModel(model), updateRate);
+        return createSimple(ItemDisplayElementUtil.getModel(model).get(), updateRate);
     }
 
-    @Deprecated
     public static LodItemDisplayElement createSimple(Identifier model, int updateRate) {
-        return createSimple(ItemDisplayElementUtil.getModel(model), updateRate);
-    }
-
-
-    public static LodItemDisplayElement createSolid(Item model, int updateRate) {
-        return createSimple(ItemDisplayElementUtil.getSolidModel(model), updateRate);
-    }
-
-    public static LodItemDisplayElement createSolid(Identifier model, int updateRate) {
-        return createSimple(ItemDisplayElementUtil.getSolidModel(model), updateRate);
-    }
-
-    public static LodItemDisplayElement createTransparent(Item model, int updateRate) {
-        return createSimple(ItemDisplayElementUtil.getTransparentModel(model), updateRate);
-    }
-
-    public static LodItemDisplayElement createTransparent(Identifier model, int updateRate) {
-        return createSimple(ItemDisplayElementUtil.getTransparentModel(model), updateRate);
+        return createSimple(ItemDisplayElementUtil.getModel(model).get(), updateRate);
     }
 
     public static LodItemDisplayElement createSimple(ItemStack model, int updateRate) {
@@ -144,22 +110,22 @@ public class LodItemDisplayElement extends ItemDisplayElement {
     }
 
     @Override
-    protected DataTrackerLike createDataTracker() {
-        return new DataTrackerLike() {
+    protected SynchedEntityDataLike createSynchedEntityData() {
+        return new SynchedEntityDataLike() {
             @Override
             public <T> @Nullable T get(EntityDataAccessor<T> data) {
-                return lodTracked.contains(data) ? nearTracker.get(data) : mainTracker.get(data);
+                return lodTracked.contains(data) ? nearSyncedData.get(data) : mainSyncedData.get(data);
             }
 
             @Override
             public <T> void set(EntityDataAccessor<T> key, T value, boolean forceDirty) {
                 if (lodTracked.contains(key)) {
-                    nearTracker.set(key, value, forceDirty);
-                    if (key != DisplayTrackedData.START_INTERPOLATION) {
-                        mediumTracker.set(key, value, forceDirty);
+                    nearSyncedData.set(key, value, forceDirty);
+                    if (key != DisplayEntityData.START_INTERPOLATION) {
+                        mediumSyncedData.set(key, value, forceDirty);
                     }
                 } else {
-                    mainTracker.set(key, value, forceDirty);
+                    mainSyncedData.set(key, value, forceDirty);
                 }
             }
 
@@ -170,29 +136,29 @@ public class LodItemDisplayElement extends ItemDisplayElement {
 
             @Override
             public boolean isDirty() {
-                return nearTracker.isDirty() || mainTracker.isDirty();
+                return nearSyncedData.isDirty() || mainSyncedData.isDirty();
             }
 
             @Override
             public boolean isDirty(EntityDataAccessor<?> key) {
-                return nearTracker.isDirty(key) || mainTracker.isDirty(key);
+                return nearSyncedData.isDirty(key) || mainSyncedData.isDirty(key);
             }
 
             @Override
             public @Nullable List<SynchedEntityData.DataValue<?>> getDirtyEntries() {
-                return mainTracker.getDirtyEntries();
+                return mainSyncedData.getDirtyEntries();
             }
 
             @Override
             public @Nullable List<SynchedEntityData.DataValue<?>> getChangedEntries() {
                 var x = new ArrayList<SynchedEntityData.DataValue<?>>();
 
-                var a = nearTracker.getChangedEntries();
+                var a = nearSyncedData.getChangedEntries();
                 if (a != null) {
                     x.addAll(a);
                 }
 
-                var b = mainTracker.getChangedEntries();
+                var b = mainSyncedData.getChangedEntries();
                 if (b != null) {
                     x.addAll(b);
                 }
@@ -205,25 +171,25 @@ public class LodItemDisplayElement extends ItemDisplayElement {
     @Override
     protected void sendTrackerUpdates() {
         if (isDisabled) {
-            if (this.nearTracker.isDirty()) {
-                this.getHolder().sendPacket(new ClientboundSetEntityDataPacket(this.getEntityId(), this.nearTracker.getDirtyEntries()));
+            if (this.nearSyncedData.isDirty()) {
+                this.getHolder().sendPacket(new ClientboundSetEntityDataPacket(this.getEntityId(), this.nearSyncedData.getDirtyEntries()));
             }
-            if (this.mainTracker.isDirty()) {
-                this.getHolder().sendPacket(new ClientboundSetEntityDataPacket(this.getEntityId(), this.mainTracker.getDirtyEntries()));
+            if (this.mainSyncedData.isDirty()) {
+                this.getHolder().sendPacket(new ClientboundSetEntityDataPacket(this.getEntityId(), this.mainSyncedData.getDirtyEntries()));
             }
         } else {
             Packet<ClientGamePacketListener> nearPacket = null;
             Packet<ClientGamePacketListener> mediumPacket = null;
-            if (this.mainTracker.isDirty()) {
-                this.getHolder().sendPacket(new ClientboundSetEntityDataPacket(this.getEntityId(), this.mainTracker.getDirtyEntries()));
+            if (this.mainSyncedData.isDirty()) {
+                this.getHolder().sendPacket(new ClientboundSetEntityDataPacket(this.getEntityId(), this.mainSyncedData.getDirtyEntries()));
             }
 
-            if (this.nearTracker.isDirty()) {
-                nearPacket = new ClientboundSetEntityDataPacket(this.getEntityId(), this.nearTracker.getDirtyEntries());
+            if (this.nearSyncedData.isDirty()) {
+                nearPacket = new ClientboundSetEntityDataPacket(this.getEntityId(), this.nearSyncedData.getDirtyEntries());
             }
 
-            if (this.mediumTracker.isDirty() && (updateTick++) % 10 == 0) {
-                mediumPacket = new ClientboundSetEntityDataPacket(this.getEntityId(), this.mediumTracker.getDirtyEntries());
+            if (this.mediumSyncedData.isDirty() && (updateTick++) % 10 == 0) {
+                mediumPacket = new ClientboundSetEntityDataPacket(this.getEntityId(), this.mediumSyncedData.getDirtyEntries());
             }
 
             if (nearPacket == null && mediumPacket == null) {

@@ -1,17 +1,9 @@
 package eu.pb4.factorytools.api.virtualentity.emuvanilla.animation;
 
-import org.joml.Vector3f;
+import org.joml.Vector3fc;
 
-public record Keyframe(float timestamp, Vector3f target, Transformation.Interpolation interpolation) {
-    public float timestamp() {
-        return this.timestamp;
-    }
-
-    public Vector3f target() {
-        return this.target;
-    }
-
-    public Transformation.Interpolation interpolation() {
-        return this.interpolation;
+public record Keyframe(float timestamp, Vector3fc postTarget, Vector3fc preTarget, AnimationChannel.Interpolation interpolation) {
+    public Keyframe(final float timestamp, final Vector3fc postTarget, final AnimationChannel.Interpolation interpolation) {
+        this(timestamp, postTarget, postTarget, interpolation);
     }
 }

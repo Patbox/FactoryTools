@@ -3,6 +3,7 @@ package eu.pb4.factorytools.api.block.model.generic;
 import com.google.common.collect.Lists;
 import com.google.gson.JsonParser;
 import com.mojang.serialization.JsonOps;
+import eu.pb4.factorytools.api.util.LazyItemStack;
 import eu.pb4.factorytools.api.util.ResourceUtils;
 import eu.pb4.factorytools.api.virtualentity.ItemDisplayElementUtil;
 import eu.pb4.polymer.resourcepack.extras.api.format.blockstate.BlockStateAsset;
@@ -20,6 +21,7 @@ import net.minecraft.util.random.Weighted;
 import net.minecraft.util.random.WeightedList;
 import net.minecraft.util.random.WeightedRandom;
 import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.item.ItemStackTemplate;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.block.state.StateHolder;
@@ -35,34 +37,27 @@ import java.util.*;
 import java.util.function.BiConsumer;
 import java.util.function.Function;
 import java.util.function.Predicate;
+import java.util.function.Supplier;
 
 public class BlockStateModelManager {
     public static final Map<String, Map<String, List<StateModelVariant>>> UV_LOCKED_MODELS = new HashMap<>();
     private static final Logger LOGGER = LoggerFactory.getLogger(BlockStateModelManager.class);
     private static final Map<BlockState, List<ModelGetter>> MAP = new HashMap<>();
-    private static final Map<BlockState, ParticleOptions> PARTICLE = new HashMap<>();
+    private static final Map<BlockState, Supplier<ParticleOptions>> PARTICLE = new HashMap<>();
 
     public static List<ModelGetter> get(BlockState state) {
         return MAP.getOrDefault(state, List.of());
     }
 
     public static ParticleOptions getParticle(BlockState state) {
-        return PARTICLE.getOrDefault(state, ParticleTypes.ANGRY_VILLAGER);
+        return PARTICLE.getOrDefault(state, () -> ParticleTypes.ANGRY_VILLAGER).get();
     }
 
-    public static void addSolidBlock(Identifier identifier, Block block) {
-        addBlock(identifier, block, ItemDisplayElementUtil::getSolidModel);
-    }
-    public static void addTransparentBlock(Identifier identifier, Block block) {
-        addBlock(identifier, block, ItemDisplayElementUtil::getTransparentModel);
-    }
-
-    @Deprecated
     public static void addBlock(Identifier identifier, Block block) {
-        addBlock(identifier, block, ItemDisplayElementUtil::getTransparentModel);
+        addBlock(identifier, block, ItemDisplayElementUtil::getModel);
     }
 
-    private static void addBlock(Identifier identifier, Block block, Function<Identifier, ItemStack> modelGetter) {
+    private static void addBlock(Identifier identifier, Block block, Function<Identifier, LazyItemStack> modelGetter) {
         try {
             var rand = RandomSource.create(123);
             var data = ResourceUtils.getJarData("assets/" + identifier.getNamespace() + "/blockstates/" + identifier.getPath() + ".json");
@@ -79,7 +74,7 @@ public class BlockStateModelManager {
                         if (pair.getA().test(state)) {
                             MAP.put(state, List.of(ModelGetter.of(pair.getB())));
                             if (!pair.getB().isEmpty()) {
-                                PARTICLE.put(state, new ItemParticleOption(ParticleTypes.ITEM, pair.getB().getFirst().stack));
+                                PARTICLE.put(state, pair.getB().getFirst().lazyStack.derivative(s -> new ItemParticleOption(ParticleTypes.ITEM, new ItemStackTemplate(s.typeHolder(), s.count(), s.getComponentsPatch()))));
                             }
                         }
                     }
@@ -100,7 +95,7 @@ public class BlockStateModelManager {
                             objects.add(ModelGetter.of(pair.getB()));
                             MAP.put(state, objects);
                             if (!objects.isEmpty() && !PARTICLE.containsKey(state)) {
-                                PARTICLE.put(state, new ItemParticleOption(ParticleTypes.ITEM, objects.getFirst().getModel(rand).stack));
+                                PARTICLE.put(state, objects.getFirst().getModel(rand).lazyStack.derivative(s -> new ItemParticleOption(ParticleTypes.ITEM, new ItemStackTemplate(s.typeHolder(), s.count(), s.getComponentsPatch()))));
                             }
                         }
                     }
@@ -111,7 +106,7 @@ public class BlockStateModelManager {
         }
     }
 
-    private static void parseMultipart(Block block, List<StateMultiPartDefinition> multiPartDefinition, ArrayList<Tuple<Predicate<BlockState>, List<ModelData>>> list, Function<Identifier, ItemStack> modelGetter) {
+    private static void parseMultipart(Block block, List<StateMultiPartDefinition> multiPartDefinition, ArrayList<Tuple<Predicate<BlockState>, List<ModelData>>> list, Function<Identifier, LazyItemStack> modelGetter) {
         for (var part : multiPartDefinition) {
             Predicate<BlockState> preds;
 
@@ -207,7 +202,7 @@ public class BlockStateModelManager {
         return term.negated() ? value -> !value.equals(parsedValue) : value -> value.equals(parsedValue);
     }
 
-    private static void parseVariants(Block block, Map<String, List<StateModelVariant>> modelDef, ArrayList<Tuple<BlockStatePredicate, List<ModelData>>> list, Function<Identifier, ItemStack> modelGetter) {
+    private static void parseVariants(Block block, Map<String, List<StateModelVariant>> modelDef, ArrayList<Tuple<BlockStatePredicate, List<ModelData>>> list, Function<Identifier, LazyItemStack> modelGetter) {
         parseVariants(block, modelDef, (a, b) -> {
             var modelData = parseBaseVariants(b, modelGetter);
             list.add(new Tuple<>(a, modelData));
@@ -239,7 +234,7 @@ public class BlockStateModelManager {
         }
     }
 
-    private static List<ModelData> parseBaseVariants(List<StateModelVariant> value, Function<Identifier, ItemStack> modelGetter) {
+    private static List<ModelData> parseBaseVariants(List<StateModelVariant> value, Function<Identifier, LazyItemStack> modelGetter) {
         var modelData = new ArrayList<ModelData>();
 
         for (var v : value) {
@@ -300,6 +295,9 @@ public class BlockStateModelManager {
         }
     }
 
-    public record ModelData(ItemStack stack, Quaternionfc quaternionfc, int weight) {
+    public record ModelData(LazyItemStack lazyStack, Quaternionfc quaternionfc, int weight) {
+        public ItemStack stack() {
+            return this.lazyStack.get();
+        }
     }
 }

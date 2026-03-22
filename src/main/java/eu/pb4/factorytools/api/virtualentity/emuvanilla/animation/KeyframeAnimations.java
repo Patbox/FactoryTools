@@ -1,4 +1,4 @@
-package eu.pb4.factorytools.api.virtualentity.emuvanilla2.animation;
+package eu.pb4.factorytools.api.virtualentity.emuvanilla.animation;
 
 import org.joml.Vector3f;
 

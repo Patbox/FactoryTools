@@ -1,4 +1,4 @@
-package eu.pb4.factorytools.api.virtualentity.emuvanilla2.model;
+package eu.pb4.factorytools.api.virtualentity.emuvanilla.model;
 
 import net.minecraft.core.component.DataComponents;
 import net.minecraft.util.Mth;

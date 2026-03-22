@@ -1,8 +1,7 @@
 package eu.pb4.factorytools.api.virtualentity;
 
-import eu.pb4.factorytools.api.virtualentity.LodItemDisplayElement;
 import eu.pb4.polymer.common.impl.CommonImplUtils;
-import eu.pb4.polymer.virtualentity.api.tracker.DisplayTrackedData;
+import eu.pb4.polymer.virtualentity.api.data.DisplayEntityData;
 import it.unimi.dsi.fastutil.objects.ObjectOpenCustomHashSet;
 import net.minecraft.network.protocol.Packet;
 import net.minecraft.network.protocol.game.ClientGamePacketListener;
@@ -35,15 +34,15 @@ public class FastItemDisplayElement extends LodItemDisplayElement {
     public void setFastItem(ItemStack stack, int distance) {
         this.fastItemStack = stack;
         this.fastPlayers.clear();
-        this.getDataTracker().setDirty(DisplayTrackedData.Item.ITEM, true);
+        this.getSyncedData().setDirty(DisplayEntityData.Item.ITEM, true);
         this.fastItemDistance = distance * distance;
-        this.fastPacket = new ClientboundSetEntityDataPacket(this.getEntityId(), List.of(SynchedEntityData.DataValue.create(DisplayTrackedData.Item.ITEM, this.fastItemStack)));
+        this.fastPacket = new ClientboundSetEntityDataPacket(this.getEntityId(), List.of(SynchedEntityData.DataValue.create(DisplayEntityData.Item.ITEM, this.fastItemStack)));
     }
 
     @Override
     public void setItem(ItemStack stack) {
         super.setItem(stack);
-        this.slowPacket = new ClientboundSetEntityDataPacket(this.getEntityId(), List.of(SynchedEntityData.DataValue.create(DisplayTrackedData.Item.ITEM, this.getItem())));
+        this.slowPacket = new ClientboundSetEntityDataPacket(this.getEntityId(), List.of(SynchedEntityData.DataValue.create(DisplayEntityData.Item.ITEM, this.getItem())));
     }
 
     @Override

@@ -37,7 +37,7 @@ public abstract class LockableBlockEntity extends BlockEntity {
     public static boolean checkUnlocked(Player player, Level world, BlockPos containerPos, LockCode lock, Component containerName, boolean display) {
         if (!player.isSpectator() && !lock.unlocksWith(player.getMainHandItem())) {
             if (display) {
-                player.displayClientMessage(Component.translatable("container.isLocked", containerName), true);
+                player.sendSystemMessage(Component.translatable("container.isLocked", containerName));
                 if (!world.isClientSide()) {
                     world.playSound((Entity)null, containerPos.getX(), containerPos.getY(), containerPos.getZ(), SoundEvents.CHEST_LOCKED, SoundSource.BLOCKS, 1.0F, 1.0F);
                 }

@@ -78,19 +78,19 @@ public class ModelHandle<T extends Entity> {
         var oldElements = new IdentityHashMap<>(this.elements);
         this.elements.clear();
 
-        for (var part : model.model().getParts()) {
+        for (var part : model.model().allParts()) {
             var stack = model.modelParts().apply(part);
             if (stack != null) {
                 var element = oldElements.get(part);
                 if (element == null) {
-                    element = ItemDisplayElementUtil.createSimple(stack);
+                    element = ItemDisplayElementUtil.createSimple(stack.get());
                     element.setDisplaySize(dimensions.width() * 2, dimensions.height() * 2);
                     element.setInterpolationDuration(1);
                     element.setTeleportDuration(3);
                     element.setViewRange(2);
                     element.setOffset(this.offset);
                 } else {
-                    element.setItem(stack);
+                    element.setItem(stack.get());
                     oldElements.remove(part);
                 }
                 this.elements.put(part, element);
@@ -113,12 +113,12 @@ public class ModelHandle<T extends Entity> {
                 var map = hurt ? this.model.damagedModelParts() : this.model.modelParts();
 
                 for (var entry : elements.entrySet()) {
-                    entry.getValue().setItem(map.apply(entry.getKey()));
+                    entry.getValue().setItem(map.apply(entry.getKey()).get());
                 }
             }
         }
 
-        this.model.model().setAngles(entity);
+        this.model.model().setupAnim(entity);
         this.model.model().render(mat, this::updateElement);
         mat.popMatrix();
     }

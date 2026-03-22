@@ -1,7 +1,7 @@
 package eu.pb4.factorytools.api.virtualentity.emuvanilla.poly;
 
 import eu.pb4.polymer.virtualentity.api.elements.GenericEntityElement;
-import eu.pb4.polymer.virtualentity.api.tracker.EntityTrackedData;
+import eu.pb4.polymer.virtualentity.api.data.EntityData;
 import org.apache.commons.lang3.function.Consumers;
 
 import java.util.List;
@@ -19,9 +19,9 @@ public class RideAttachmentElement extends GenericEntityElement {
     private float maxHealth = 0;
 
     public RideAttachmentElement() {
-        this.dataTracker.set(EntityTrackedData.SILENT, true);
-        this.dataTracker.set(EntityTrackedData.NO_GRAVITY, true);
-        this.dataTracker.set(EntityTrackedData.FLAGS, (byte) ((1 << EntityTrackedData.INVISIBLE_FLAG_INDEX)));
+        this.syncedData.set(EntityData.SILENT, true);
+        this.syncedData.set(EntityData.NO_GRAVITY, true);
+        this.syncedData.set(EntityData.FLAGS, (byte) ((1 << EntityData.INVISIBLE_FLAG_INDEX)));
     }
 
 

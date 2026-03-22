@@ -10,17 +10,19 @@ import java.util.Optional;
 import net.minecraft.core.HolderSet;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.item.ItemStackTemplate;
 import net.minecraft.world.item.crafting.Ingredient;
 import net.minecraft.world.level.ItemLike;
+import org.jspecify.annotations.Nullable;
 
-public record CountedIngredient(Optional<Ingredient> ingredient, ItemComponentPredicate component, int count, ItemStack leftOver) {
-    public static final CountedIngredient EMPTY = new CountedIngredient(Optional.empty(), ItemComponentPredicate.EMPTY, 0, ItemStack.EMPTY);
+public record CountedIngredient(Optional<Ingredient> ingredient, ItemComponentPredicate component, int count, Optional<ItemStackTemplate> leftOver) {
+    public static final CountedIngredient EMPTY = new CountedIngredient(Optional.empty(), ItemComponentPredicate.EMPTY, 0, Optional.empty());
 
     public static final Codec<CountedIngredient> CODEC_SELF = RecordCodecBuilder.create(x -> x.group(
                     Ingredient.CODEC.optionalFieldOf("base").forGetter(CountedIngredient::ingredient),
                     ItemComponentPredicate.CODEC.optionalFieldOf("component", ItemComponentPredicate.EMPTY).forGetter(CountedIngredient::component),
                     Codec.INT.optionalFieldOf("count", 1).forGetter(CountedIngredient::count),
-                    ItemStack.CODEC.optionalFieldOf("leftover", ItemStack.EMPTY).forGetter(CountedIngredient::leftOver)
+                    ItemStackTemplate.CODEC.optionalFieldOf("leftover").forGetter(CountedIngredient::leftOver)
             ).apply(x, CountedIngredient::new)
     );
 
@@ -28,7 +30,7 @@ public record CountedIngredient(Optional<Ingredient> ingredient, ItemComponentPr
             Ingredient.CODEC.optionalFieldOf("base").forGetter(CountedIngredient::ingredient),
                     ItemComponentPredicate.CODEC.optionalFieldOf("component", ItemComponentPredicate.EMPTY).forGetter(CountedIngredient::component),
                     MapCodec.unit(1).forGetter(CountedIngredient::count),
-                    ItemStack.CODEC.optionalFieldOf("leftover", ItemStack.EMPTY).forGetter(CountedIngredient::leftOver)
+                    ItemStackTemplate.CODEC.optionalFieldOf("leftover").forGetter(CountedIngredient::leftOver)
             ).apply(x, CountedIngredient::new)
     );
 
@@ -38,27 +40,27 @@ public record CountedIngredient(Optional<Ingredient> ingredient, ItemComponentPr
     public static final Codec<CountedIngredient> CODEC_UNCOUNTED = Codec.withAlternative(CODEC_SELF_UNCOUNTED, Ingredient.CODEC,
             y -> new CountedIngredient(Optional.of(y), ItemComponentPredicate.EMPTY, 1, tryGettingLeftover(y)));
 
-    public static ItemStack tryGettingLeftover(Ingredient y) {
+    public static Optional<ItemStackTemplate> tryGettingLeftover(Ingredient y) {
         if (y.items().count() > 0) {
-            return y.items().findFirst().get().value().getCraftingRemainder();
+            return Optional.ofNullable(y.items().findFirst().get().value().getCraftingRemainder());
         }
 
-        return ItemStack.EMPTY;
+        return Optional.empty();
     }
 
     public static final Codec<List<CountedIngredient>> LIST_CODEC = Codec.either(CODEC, Codec.list(CODEC))
-            .xmap(x -> x.map(y -> List.of(y), y -> y), x -> x.size() == 1 ? Either.left(x.get(0)) : Either.right(x));
+            .xmap(x -> x.map(List::of, y -> y), x -> x.size() == 1 ? Either.left(x.get(0)) : Either.right(x));
 
     public static CountedIngredient ofItems(int count, ItemLike... items) {
-        return new CountedIngredient(Optional.of(Ingredient.of(items)), ItemComponentPredicate.EMPTY, count, ItemStack.EMPTY);
+        return new CountedIngredient(Optional.of(Ingredient.of(items)), ItemComponentPredicate.EMPTY, count, Optional.empty());
     }
 
     public static CountedIngredient ofItemWithPredicate(int count, ItemLike item, ItemComponentPredicate predicate) {
-        return new CountedIngredient(Optional.of(Ingredient.of(item)), predicate, count, ItemStack.EMPTY);
+        return new CountedIngredient(Optional.of(Ingredient.of(item)), predicate, count, Optional.empty());
     }
 
     public static CountedIngredient ofItemsRemainder(int count, ItemLike item, ItemLike remainder) {
-        return new CountedIngredient(Optional.of(Ingredient.of(item)), ItemComponentPredicate.EMPTY, count, new ItemStack(remainder.asItem(), count));
+        return new CountedIngredient(Optional.of(Ingredient.of(item)), ItemComponentPredicate.EMPTY, count, Optional.of(new ItemStackTemplate(remainder.asItem(), count)));
     }
 
     @Deprecated
@@ -67,7 +69,7 @@ public record CountedIngredient(Optional<Ingredient> ingredient, ItemComponentPr
     }
 
     public static CountedIngredient ofTag(int count, HolderSet<Item> tag) {
-        return new CountedIngredient(Optional.of(Ingredient.of(tag)), ItemComponentPredicate.EMPTY, count, ItemStack.EMPTY);
+        return new CountedIngredient(Optional.of(Ingredient.of(tag)), ItemComponentPredicate.EMPTY, count, Optional.empty());
     }
 
     public boolean test(ItemStack stack) {

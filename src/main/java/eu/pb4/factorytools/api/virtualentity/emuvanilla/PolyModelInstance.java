@@ -1,20 +1,25 @@
 package eu.pb4.factorytools.api.virtualentity.emuvanilla;
 
+import com.mojang.math.Quadrant;
+import eu.pb4.factorytools.api.util.LazyItemStack;
 import eu.pb4.factorytools.api.virtualentity.emuvanilla.model.EntityModel;
 import eu.pb4.factorytools.api.virtualentity.emuvanilla.model.ModelPart;
-import eu.pb4.factorytools.api.virtualentity.emuvanilla.model.TexturedModelData;
+import eu.pb4.factorytools.api.virtualentity.emuvanilla.model.LayerDefinition;
 import eu.pb4.factorytools.api.virtualentity.ItemDisplayElementUtil;
 import eu.pb4.polymer.resourcepack.api.AssetPaths;
 import eu.pb4.polymer.resourcepack.extras.api.format.atlas.AtlasAsset;
 import eu.pb4.polymer.resourcepack.extras.api.format.model.ModelAsset;
 import eu.pb4.polymer.resourcepack.extras.api.format.model.ModelElement;
 import eu.pb4.polymer.resourcepack.extras.api.format.model.ModelTransformation;
+import net.minecraft.world.level.block.Rotation;
 import org.jetbrains.annotations.Nullable;
 import org.joml.Vector3f;
 
 import java.util.IdentityHashMap;
 import java.util.function.BiConsumer;
 import java.util.function.Function;
+import java.util.function.Supplier;
+
 import net.minecraft.core.Direction;
 import net.minecraft.core.component.DataComponents;
 import net.minecraft.resources.Identifier;
@@ -23,11 +28,11 @@ import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.component.MapItemColor;
 import net.minecraft.world.phys.Vec3;
 
-public record PolyModelInstance<T extends EntityModel<?>>(T model, TexturedModelData data, Identifier texture,
-                                                          Function<ModelPart, @Nullable ItemStack> modelParts, Function<ModelPart, @Nullable ItemStack> damagedModelParts) {
+public record PolyModelInstance<T extends EntityModel<?>>(T model, LayerDefinition data, Identifier texture,
+                                                          Function<ModelPart, @Nullable Supplier<ItemStack>> modelParts, Function<ModelPart, @Nullable Supplier<ItemStack>> damagedModelParts) {
 
-    public static <T extends EntityModel<?>> PolyModelInstance<T> create(Function<ModelPart, T> modelCreator, TexturedModelData data, Identifier texture) {
-        var model = modelCreator.apply(data.createModel());
+    public static <T extends EntityModel<?>> PolyModelInstance<T> create(Function<ModelPart, T> modelCreator, LayerDefinition data, Identifier texture) {
+        var model = modelCreator.apply(data.bakeRoot());
 
         return of(model, data, texture);
     }
@@ -36,17 +41,19 @@ public record PolyModelInstance<T extends EntityModel<?>>(T model, TexturedModel
         return of(this.model, this.data, texture);
     }
 
-    private static <T extends EntityModel<?>> PolyModelInstance<T> of(T model, TexturedModelData data, Identifier texture) {
-        var map = new IdentityHashMap<ModelPart, ItemStack>();
-        var damagedMap = new IdentityHashMap<ModelPart, ItemStack>();
+    private static <T extends EntityModel<?>> PolyModelInstance<T> of(T model, LayerDefinition data, Identifier texture) {
+        var map = new IdentityHashMap<ModelPart, Supplier<ItemStack>>();
+        var damagedMap = new IdentityHashMap<ModelPart, Supplier<ItemStack>>();
         int id = 0;
-        for (var part : model.getParts()) {
+        for (var part : model.allParts()) {
             if (part.isEmpty()) continue;
             var stack = ItemDisplayElementUtil.getModel(texture.withSuffix("/part_" + (id++)));
             map.put(part, stack);
-            stack = stack.copy();
-            stack.set(DataComponents.MAP_COLOR, new MapItemColor(0xff7e7e));
-            damagedMap.put(part, stack);
+            damagedMap.put(part, stack.derivative(s -> {
+                s = s.copy();
+                s.set(DataComponents.MAP_COLOR, new MapItemColor(0xff7e7e));
+                return s;
+            }));
         }
         return new PolyModelInstance<>(model, data, texture, map::get, damagedMap::get);
     }
@@ -56,44 +63,47 @@ public record PolyModelInstance<T extends EntityModel<?>>(T model, TexturedModel
 
         int id = 0;
 
-        for (var part : model.getParts()) {
+        for (var part : model.allParts()) {
             if (part.isEmpty()) continue;
             var modelId = texture.withSuffix("/part_" + (id++));
             var model = ModelAsset.builder();
-            model.texture("txt", texture.toString());
-            model.texture("particle", "#txt");
+            model.texture("txt", texture);
+            model.textureReference("particle", "txt");
 
             part.forEachCuboid(cuboid -> {
-                for (var quad : cuboid.sides) {
+                for (var quad : cuboid.polygons) {
                     var min = new Vector3f(Float.POSITIVE_INFINITY);
                     var max = new Vector3f(Float.NEGATIVE_INFINITY);
                     ModelPart.Vertex v1 = quad.vertices()[0];
                     ModelPart.Vertex v2 = quad.vertices()[0];
 
                     for (var vert : quad.vertices()) {
-                        min.min(vert.pos());
-                        max.max(vert.pos());
+                        var pos = new Vector3f(vert.x(), vert.y(), vert.z());
+                        min.min(pos);
+                        max.max(pos);
                     }
 
                     for (var vert : quad.vertices()) {
-                        if (min.equals(vert.pos())) {
+                        var pos = new Vector3f(vert.x(), vert.y(), vert.z());
+                        if (min.equals(pos)) {
                             v1 = vert;
                         }
-                        if (max.equals(vert.pos())) {
+                        if (max.equals(pos)) {
                             v2 = vert;
                         }
                     }
 
 
                     var b = ModelElement.builder(new Vec3(min.x, min.y, min.z).scale(0.25).add(8), new Vec3(max.x, max.y, max.z).scale(0.25).add(8));
-                    var dir = Direction.getNearest((int) quad.direction().x, (int) quad.direction().y, (int) quad.direction().z, null);
+
+                    var dir = Direction.getNearest((int) quad.normal().x(), (int) quad.normal().y(), (int) quad.normal().z(), null);
 
                     if ((dir.getAxisDirection() == Direction.AxisDirection.NEGATIVE) == (dir.getAxis() == Direction.Axis.Z)) {
                        dir = dir.getOpposite();
                     }
 
-                    b.face(dir, v1.u() * 16, v2.v() * 16, v2.u() * 16, v1.v() * 16, "#txt", dir, 0, 0);
-                    b.face(dir.getOpposite(), v2.u() * 16, v2.v() * 16, v1.u() * 16, v1.v() * 16, "#txt", dir.getOpposite(), 0, 0);
+                    b.face(dir, v1.u() * 16, v2.v() * 16, v2.u() * 16, v1.v() * 16, "#txt", dir, Quadrant.R0, 0);
+                    b.face(dir.getOpposite(), v2.u() * 16, v2.v() * 16, v1.u() * 16, v1.v() * 16, "#txt", dir.getOpposite(), Quadrant.R0, 0);
 
 
                     model.element(b.build());

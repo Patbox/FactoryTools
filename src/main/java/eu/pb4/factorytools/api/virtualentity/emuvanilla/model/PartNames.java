@@ -1,6 +1,6 @@
 package eu.pb4.factorytools.api.virtualentity.emuvanilla.model;
 
-public class EntityModelPartNames {
+public class PartNames {
     public static final String LEFT_FIN = "left_fin";
     public static final String RIGHT_FIN = "right_fin";
     public static final String TOP_FIN = "top_fin";
@@ -93,7 +93,7 @@ public class EntityModelPartNames {
     public static final String CHEST_LID = "chest_lid";
     public static final String CHEST_LOCK = "chest_lock";
 
-    public EntityModelPartNames() {
+    public PartNames() {
     }
 
     public static String getTentacleName(int index) {

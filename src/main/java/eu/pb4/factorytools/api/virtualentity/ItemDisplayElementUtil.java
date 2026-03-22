@@ -1,5 +1,6 @@
 package eu.pb4.factorytools.api.virtualentity;
 
+import eu.pb4.factorytools.api.util.LazyItemStack;
 import eu.pb4.polymer.resourcepack.extras.api.ResourcePackExtras;
 import eu.pb4.polymer.virtualentity.api.elements.ItemDisplayElement;
 import it.unimi.dsi.fastutil.objects.Reference2ObjectOpenHashMap;
@@ -14,87 +15,31 @@ import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
 
 public class ItemDisplayElementUtil {
-    private static final Map<Item, ItemStack> TRANSPARENT_ITEM_MODEL_MAP = new Reference2ObjectOpenHashMap<>();
-    private static final Map<Item, ItemStack> SOLID_ITEM_MODEL_MAP = new Reference2ObjectOpenHashMap<>();
-    private static final Map<Identifier, ItemStack> TRANSPARENT_ID_MODEL_MAP = new HashMap<>();
-    private static final Map<Identifier, ItemStack> SOLID_ID_MODEL_MAP = new HashMap<>();
+    private static final Map<Item, LazyItemStack> ITEM_MODEL_MAP = new Reference2ObjectOpenHashMap<>();
+    private static final Map<Identifier, LazyItemStack> ID_MODEL_MAP = new HashMap<>();
 
-    @Deprecated
     public static ItemDisplayElement createSimple(Item model) {
-        return createSimple(getModel(model));
+        return createSimple(getModel(model).get());
     }
 
-    @Deprecated
     public static ItemDisplayElement createSimple(Identifier model) {
-        return createSimple(getModel(model));
+        return createSimple(getModel(model).get());
     }
 
-    public static ItemDisplayElement createTransparent(Item model) {
-        return createSimple(getModel(model));
+    public static LazyItemStack getModel(Item model) {
+        return getModelGeneric(model, ITEM_MODEL_MAP, Items.TRIAL_KEY, (item) -> item.components().get(DataComponents.ITEM_MODEL));
     }
 
-    public static ItemDisplayElement createTransparent(Identifier model) {
-        return createSimple(getModel(model));
+    public static LazyItemStack getModel(Identifier model) {
+        return getModelGeneric(model, ID_MODEL_MAP, Items.TRIAL_KEY, ResourcePackExtras::bridgeModel);
     }
 
-    public static ItemDisplayElement createSolid(Item model) {
-        return createSimple(getSolidModel(model));
-    }
-
-    public static ItemDisplayElement createSolid(Identifier model) {
-        return createSimple(getSolidModel(model));
-    }
-
-    @Deprecated
-    public static ItemStack getModel(Item model) {
-        return getModelGeneric(model, TRANSPARENT_ITEM_MODEL_MAP, Items.TRIAL_KEY, (item) -> item.components().get(DataComponents.ITEM_MODEL));
-    }
-
-    @Deprecated
-    public static ItemStack getModel(Identifier model) {
-        return getModelGeneric(model, TRANSPARENT_ID_MODEL_MAP, Items.TRIAL_KEY, ResourcePackExtras::bridgeModel);
-    }
-
-    public static ItemStack getTransparentModel(Item model) {
-        return getModelGeneric(model, TRANSPARENT_ITEM_MODEL_MAP, Items.TRIAL_KEY, (item) -> item.components().get(DataComponents.ITEM_MODEL));
-    }
-
-    public static ItemStack getTransparentModel(Identifier model) {
-        return getModelGeneric(model, TRANSPARENT_ID_MODEL_MAP, Items.TRIAL_KEY, ResourcePackExtras::bridgeModel);
-    }
-
-    public static ItemStack getSolidModel(Item model) {
-        return getModelGeneric(model, SOLID_ITEM_MODEL_MAP, Items.STONE, (item) -> item.components().get(DataComponents.ITEM_MODEL));
-    }
-
-    public static ItemStack getSolidModel(Identifier model) {
-        return getModelGeneric(model, SOLID_ID_MODEL_MAP, Items.STONE, ResourcePackExtras::bridgeModel);
-    }
-
-    @Deprecated
     public static ItemStack getModelCopy(Item model) {
-        return getModel(model).copy();
+        return getModel(model).get().copy();
     }
 
-    @Deprecated
     public static ItemStack getModelCopy(Identifier model) {
-        return getModel(model).copy();
-    }
-
-    public static ItemStack getSolidModelCopy(Item model) {
-        return getSolidModel(model).copy();
-    }
-
-    public static ItemStack getSolidModelCopy(Identifier model) {
-        return getSolidModel(model).copy();
-    }
-
-    public static ItemStack getTransparentModelCopy(Item model) {
-        return getTransparentModel(model).copy();
-    }
-
-    public static ItemStack getTransparentModelCopy(Identifier model) {
-        return getTransparentModel(model).copy();
+        return getModel(model).get().copy();
     }
 
     public static ItemDisplayElement createSimple(ItemStack model) {
@@ -103,30 +48,12 @@ public class ItemDisplayElementUtil {
         return element;
     }
 
-    @Deprecated
     public static ItemDisplayElement createSimple(Item model, int updateRate) {
-        return createSimple(getModel(model), updateRate);
+        return createSimple(getModel(model).get(), updateRate);
     }
-    @Deprecated
 
     public static ItemDisplayElement createSimple(Identifier model, int updateRate) {
-        return createSimple(getModel(model), updateRate);
-    }
-
-    public static ItemDisplayElement createSolid(Item model, int updateRate) {
-        return createSimple(getSolidModel(model), updateRate);
-    }
-
-    public static ItemDisplayElement createSolid(Identifier model, int updateRate) {
-        return createSimple(getSolidModel(model), updateRate);
-    }
-
-    public static ItemDisplayElement createTransparent(Item model, int updateRate) {
-        return createSimple(getTransparentModel(model), updateRate);
-    }
-
-    public static ItemDisplayElement createTransparent(Identifier model, int updateRate) {
-        return createSimple(getTransparentModel(model), updateRate);
+        return createSimple(getModel(model).get(), updateRate);
     }
 
     public static ItemDisplayElement createSimple(ItemStack model, int updateRate) {
@@ -145,8 +72,8 @@ public class ItemDisplayElementUtil {
         return element;
     }
 
-    private static <T> ItemStack getModelGeneric(T model, Map<T, ItemStack> map, Item baseItem, Function<T, Identifier> itemModelfier) {
-        ItemStack stack;
+    private static <T> LazyItemStack getModelGeneric(T model, Map<T, LazyItemStack> map, Item baseItem, Function<T, Identifier> itemModelfier) {
+        LazyItemStack stack;
         while (true) {
             try {
                 stack = map.get(model);
@@ -155,8 +82,11 @@ public class ItemDisplayElementUtil {
         }
 
         if (stack == null) {
-            stack = new ItemStack(baseItem);
-            stack.set(DataComponents.ITEM_MODEL, itemModelfier.apply(model));
+            stack = new LazyItemStack(() -> {
+                var s = new ItemStack(baseItem);
+                s.set(DataComponents.ITEM_MODEL, itemModelfier.apply(model));
+                return s;
+            });
 
             synchronized (map) {
                 map.put(model, stack);

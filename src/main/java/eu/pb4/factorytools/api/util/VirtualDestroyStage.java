@@ -24,13 +24,13 @@ import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.phys.Vec3;
 
 public class VirtualDestroyStage extends ElementHolder {
-    public static final ItemStack[] MODELS = new ItemStack[10];
+    public static final LazyItemStack[] MODELS = new LazyItemStack[10];
     private final ItemDisplayElement main = new ItemDisplayElement();
     private int state;
 
 
     public VirtualDestroyStage() {
-        this.main.setItem(MODELS[0]);
+        this.main.setItem(MODELS[0].get());
         this.main.setScale(new Vector3f(1.01f));
         this.addElement(this.main);
     }
@@ -71,7 +71,7 @@ public class VirtualDestroyStage extends ElementHolder {
         }
 
         this.state = i;
-        this.main.setItem(i < 0 ? ItemStack.EMPTY : MODELS[Math.min(i, MODELS.length - 1)]);
+        this.main.setItem(i < 0 ? ItemStack.EMPTY : MODELS[Math.min(i, MODELS.length - 1)].get());
         this.tick();
     }
 

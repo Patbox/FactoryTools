@@ -15,8 +15,8 @@ import net.minecraft.world.level.storage.ValueOutput;
 
 @SuppressWarnings("OverwriteAuthorRequired")
 @Mixin(LockableBlockEntity.class)
-public abstract class htm_LockableBlockEntityMixin implements LockableObject {
-    @SuppressWarnings("OptionalUsedAsFieldOrParameterType")
+public abstract class htm_LockableBlockEntityMixin /*implements LockableObject*/ {
+    /*@SuppressWarnings("OptionalUsedAsFieldOrParameterType")
     @Unique
     public Optional<HTMContainerLock> htmContainerLock = Optional.empty();
 
@@ -58,5 +58,5 @@ public abstract class htm_LockableBlockEntityMixin implements LockableObject {
     @Override
     public void setLock(HTMContainerLock lock) {
         htmContainerLock = Optional.ofNullable(lock);
-    }
+    }*/
 }

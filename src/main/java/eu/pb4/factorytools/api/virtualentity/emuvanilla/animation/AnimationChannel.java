@@ -1,6 +1,6 @@
-package eu.pb4.factorytools.api.virtualentity.emuvanilla2.animation;
+package eu.pb4.factorytools.api.virtualentity.emuvanilla.animation;
 
-import eu.pb4.factorytools.api.virtualentity.emuvanilla2.model.ModelPart;
+import eu.pb4.factorytools.api.virtualentity.emuvanilla.model.ModelPart;
 import net.minecraft.util.Mth;
 import org.joml.Vector3f;
 import org.joml.Vector3fc;

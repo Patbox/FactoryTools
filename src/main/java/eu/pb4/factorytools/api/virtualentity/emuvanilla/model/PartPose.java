@@ -1,4 +1,4 @@
-package eu.pb4.factorytools.api.virtualentity.emuvanilla2.model;
+package eu.pb4.factorytools.api.virtualentity.emuvanilla.model;
 
 public record PartPose(float x, float y, float z, float xRot, float yRot, float zRot, float xScale, float yScale, float zScale) {
     public static final PartPose ZERO = offsetAndRotation(0.0F, 0.0F, 0.0F, 0.0F, 0.0F, 0.0F);

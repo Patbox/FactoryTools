@@ -1,4 +1,4 @@
-package eu.pb4.factorytools.api.virtualentity.emuvanilla2.model;
+package eu.pb4.factorytools.api.virtualentity.emuvanilla.model;
 
 public class CubeDeformation {
     public static final CubeDeformation NONE = new CubeDeformation(0.0F);

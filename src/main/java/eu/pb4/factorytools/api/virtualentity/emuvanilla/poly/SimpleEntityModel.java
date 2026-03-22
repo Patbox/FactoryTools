@@ -53,7 +53,7 @@ public class SimpleEntityModel<T extends LivingEntity> extends ElementHolder {
     protected void onTick() {
         noTick = false;
         this.rideAttachment.setMaxHealth(this.entity.getMaxHealth());
-        this.rideAttachment.getDataTracker().set(LivingEntityAccessor.getDATA_HEALTH_ID(), this.entity.getHealth());
+        this.rideAttachment.getSyncedData().set(LivingEntityAccessor.getDATA_HEALTH_ID(), this.entity.getHealth());
         this.interaction.setCustomName(this.entity.getCustomName());
         this.interaction.setCustomNameVisible(this.entity.isCustomNameVisible());
         this.rideAttachment.setYaw(entity.getYRot());

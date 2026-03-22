@@ -1,6 +1,6 @@
-package eu.pb4.factorytools.api.virtualentity.emuvanilla2.animation;
+package eu.pb4.factorytools.api.virtualentity.emuvanilla.animation;
 
-import eu.pb4.factorytools.api.virtualentity.emuvanilla2.model.ModelPart;
+import eu.pb4.factorytools.api.virtualentity.emuvanilla.model.ModelPart;
 import org.joml.Vector3f;
 
 import java.util.ArrayList;

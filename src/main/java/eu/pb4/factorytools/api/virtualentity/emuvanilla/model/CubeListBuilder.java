@@ -1,4 +1,4 @@
-package eu.pb4.factorytools.api.virtualentity.emuvanilla2.model;
+package eu.pb4.factorytools.api.virtualentity.emuvanilla.model;
 
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Lists;

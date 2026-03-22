@@ -127,16 +127,16 @@ public class ModelModifiers {
 
         builder.addData(AssetPaths.model(Identifier.fromNamespaceAndPath(namespace, "block_sign/" + name + "_sign.json")), ModelAsset.builder()
                 .parent(Identifier.fromNamespaceAndPath("factorytools", "block_sign/template_sign"))
-                .texture("sign", textureRegular.toString()).build());
+                .texture("sign", textureRegular).build());
         builder.addData(AssetPaths.model(Identifier.fromNamespaceAndPath(namespace, "block_sign/" + name + "_wall_sign.json")), ModelAsset.builder()
                 .parent(Identifier.fromNamespaceAndPath("factorytools", "block_sign/template_wall_sign"))
-                .texture("sign", textureRegular.toString()).build());
+                .texture("sign", textureRegular).build());
         builder.addData(AssetPaths.model(Identifier.fromNamespaceAndPath(namespace, "block_sign/" + name + "_hanging_sign.json")), ModelAsset.builder()
                 .parent(Identifier.fromNamespaceAndPath("factorytools", "block_sign/template_hanging_sign"))
-                .texture("sign", textureHanging.toString()).build());
+                .texture("sign", textureHanging).build());
         builder.addData(AssetPaths.model(Identifier.fromNamespaceAndPath(namespace, "block_sign/" + name + "_wall_hanging_sign.json")), ModelAsset.builder()
                 .parent(Identifier.fromNamespaceAndPath("factorytools", "block_sign/template_wall_hanging_sign"))
-                .texture("sign", textureHanging.toString()).build());
+                .texture("sign", textureHanging).build());
     }
 
     public static FloatList getClampedDefaultUV(Vec3 from, Vec3 to, Direction facing) {
