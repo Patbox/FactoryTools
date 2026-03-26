@@ -6,7 +6,7 @@ import eu.pb4.factorytools.impl.ExtendedItemPredicateCodec;
 import eu.pb4.factorytools.impl.ExtraItemPredicate;
 import net.minecraft.advancements.criterion.ItemPredicate;
 import net.minecraft.resources.Identifier;
-import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.item.ItemInstance;
 import org.spongepowered.asm.mixin.*;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
@@ -27,8 +27,8 @@ public class ItemPredicateMixin implements ExtraItemPredicate {
         CODEC = new ExtendedItemPredicateCodec(CODEC);
     }
 
-    @Inject(method = "test", at = @At("HEAD"), cancellable = true)
-    private void matchCustom(ItemStack stack, CallbackInfoReturnable<Boolean> cir) {
+    @Inject(method = "test(Lnet/minecraft/world/item/ItemInstance;)Z", at = @At("HEAD"), cancellable = true)
+    private void matchCustom(ItemInstance stack, CallbackInfoReturnable<Boolean> cir) {
         if (customPredicate != null) {
             var predicate = ExtraItemPredicates.PREDICATES.get(customPredicate);
             if (predicate == null || !predicate.test(stack)) {
