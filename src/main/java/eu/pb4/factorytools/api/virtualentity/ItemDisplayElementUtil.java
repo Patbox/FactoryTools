@@ -48,6 +48,12 @@ public class ItemDisplayElementUtil {
         return element;
     }
 
+    public static ItemDisplayElement createSimple(LazyItemStack model) {
+        var element = createSimple();
+        element.setItem(model.get());
+        return element;
+    }
+
     public static ItemDisplayElement createSimple(Item model, int updateRate) {
         return createSimple(getModel(model).get(), updateRate);
     }
@@ -57,6 +63,12 @@ public class ItemDisplayElementUtil {
     }
 
     public static ItemDisplayElement createSimple(ItemStack model, int updateRate) {
+        var element = createSimple(model);
+        element.setInterpolationDuration(updateRate);
+        return element;
+    }
+
+    public static ItemDisplayElement createSimple(LazyItemStack model, int updateRate) {
         var element = createSimple(model);
         element.setInterpolationDuration(updateRate);
         return element;

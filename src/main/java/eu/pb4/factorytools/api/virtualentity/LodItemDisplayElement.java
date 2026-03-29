@@ -1,5 +1,6 @@
 package eu.pb4.factorytools.api.virtualentity;
 
+import eu.pb4.factorytools.api.util.LazyItemStack;
 import eu.pb4.polymer.virtualentity.api.data.DisplayEntityData;
 import eu.pb4.polymer.virtualentity.api.data.SimpleSynchedEntityData;
 import eu.pb4.polymer.virtualentity.api.data.SynchedEntityDataLike;
@@ -65,6 +66,12 @@ public class LodItemDisplayElement extends ItemDisplayElement {
         return element;
     }
 
+    public static LodItemDisplayElement createSimple(LazyItemStack model) {
+        var element = createSimple();
+        element.setItem(model.get());
+        return element;
+    }
+
     public static LodItemDisplayElement createSimple(ItemStack model, int updateRate, float qualityMultiplier, float farQualityDistanceMultiplier) {
         var element = createSimple(model, updateRate);
         element.nearDistanceSquared = 50 * 50 * qualityMultiplier * qualityMultiplier;
@@ -73,6 +80,19 @@ public class LodItemDisplayElement extends ItemDisplayElement {
     }
 
     public static LodItemDisplayElement createSimple(ItemStack model, int updateRate, float qualityMultiplier) {
+        var element = createSimple(model, updateRate);
+        element.nearDistanceSquared = 50 * 50 * qualityMultiplier * qualityMultiplier;
+        return element;
+    }
+
+    public static LodItemDisplayElement createSimple(LazyItemStack model, int updateRate, float qualityMultiplier, float farQualityDistanceMultiplier) {
+        var element = createSimple(model, updateRate);
+        element.nearDistanceSquared = 50 * 50 * qualityMultiplier * qualityMultiplier;
+        element.farDistanceSquared = 90 * 90 * farQualityDistanceMultiplier * farQualityDistanceMultiplier;
+        return element;
+    }
+
+    public static LodItemDisplayElement createSimple(LazyItemStack model, int updateRate, float qualityMultiplier) {
         var element = createSimple(model, updateRate);
         element.nearDistanceSquared = 50 * 50 * qualityMultiplier * qualityMultiplier;
         return element;
@@ -87,6 +107,12 @@ public class LodItemDisplayElement extends ItemDisplayElement {
     }
 
     public static LodItemDisplayElement createSimple(ItemStack model, int updateRate) {
+        var element = createSimple(model);
+        element.setInterpolationDuration(updateRate);
+        return element;
+    }
+
+    public static LodItemDisplayElement createSimple(LazyItemStack model, int updateRate) {
         var element = createSimple(model);
         element.setInterpolationDuration(updateRate);
         return element;

@@ -10,6 +10,7 @@ import net.minecraft.nbt.CompoundTag;
 import net.minecraft.nbt.IntArrayTag;
 import net.minecraft.nbt.ListTag;
 import net.minecraft.nbt.Tag;
+import net.minecraft.server.players.NameAndId;
 import net.minecraft.util.Util;
 import org.jetbrains.annotations.Nullable;
 
@@ -86,6 +87,28 @@ public final class LegacyNbtHelper {
             }
 
             nbt.put("Properties", nbtCompound);
+        }
+
+        return nbt;
+    }
+
+    @Nullable
+    public static NameAndId toNameAndId(CompoundTag nbt) {
+        if (!nbt.contains("Id")) {
+            return null;
+        }
+        UUID uUID = nbt.read("Id", UUID_CODEC).orElse(Util.NIL_UUID);
+        String string = nbt.getStringOr("Name", "");
+        return new NameAndId(uUID, string);
+    }
+
+    public static CompoundTag writeNameAndId(CompoundTag nbt, NameAndId profile) {
+        if (!profile.name().isEmpty()) {
+            nbt.putString("Name", profile.name());
+        }
+
+        if (!profile.id().equals(Util.NIL_UUID)) {
+            nbt.store("Id", UUIDUtil.AUTHLIB_CODEC, profile.id());
         }
 
         return nbt;
