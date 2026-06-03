@@ -20,14 +20,25 @@ public record OutputStack(ItemStackTemplate stack, float chance, int roll) {
     public static final Codec<List<OutputStack>> LIST_CODEC = Codec.either(CODEC, Codec.list(CODEC))
             .xmap(x -> x.map(y -> List.of(y), y -> y), x -> x.size() == 1 ? Either.left(x.get(0)) : Either.right(x));
 
-    public static OutputStack of(ItemLike stick) {
-        return new OutputStack(new ItemStackTemplate(stick.asItem()), 1, 1);
+    public static OutputStack of(ItemLike item) {
+        return new OutputStack(new ItemStackTemplate(item.asItem()), 1, 1);
     }
-    public static OutputStack of(ItemLike stick, float chance, int roll) {
-        return new OutputStack(new ItemStackTemplate(stick.asItem()), chance, roll);
+    public static OutputStack of(ItemLike item, float chance, int roll) {
+        return new OutputStack(new ItemStackTemplate(item.asItem()), chance, roll);
     }
 
-    public static OutputStack of(ItemLike stick, float chance) {
-        return new OutputStack(new ItemStackTemplate(stick.asItem()), chance, 1);
+    public static OutputStack of(ItemLike item, float chance) {
+        return new OutputStack(new ItemStackTemplate(item.asItem()), chance, 1);
+    }
+
+    public static OutputStack of(ItemStackTemplate item) {
+        return new OutputStack(item, 1, 1);
+    }
+    public static OutputStack of(ItemStackTemplate item, float chance, int roll) {
+        return new OutputStack(item, chance, roll);
+    }
+
+    public static OutputStack of(ItemStackTemplate item, float chance) {
+        return new OutputStack(item, chance, 1);
     }
 }

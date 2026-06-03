@@ -73,7 +73,10 @@ public record CountedIngredient(Optional<Ingredient> ingredient, ItemComponentPr
     }
 
     public boolean test(ItemStack stack) {
-        return stack.getCount() >= this.count && (this.ingredient.isEmpty() || this.ingredient.get().test(stack)) && this.component.test(stack);
+        return stack.getCount() >= this.count && this.testUncounted(stack);
     }
 
+    public boolean testUncounted(ItemStack stack) {
+        return (this.ingredient.isEmpty() || this.ingredient.get().test(stack)) && this.component.test(stack);
+    }
 }
