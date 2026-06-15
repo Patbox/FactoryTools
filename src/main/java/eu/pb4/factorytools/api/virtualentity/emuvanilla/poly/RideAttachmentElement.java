@@ -2,6 +2,7 @@ package eu.pb4.factorytools.api.virtualentity.emuvanilla.poly;
 
 import eu.pb4.polymer.virtualentity.api.elements.GenericEntityElement;
 import eu.pb4.polymer.virtualentity.api.data.EntityData;
+import net.minecraft.world.entity.EntityTypes;
 import org.apache.commons.lang3.function.Consumers;
 
 import java.util.List;
@@ -39,7 +40,7 @@ public class RideAttachmentElement extends GenericEntityElement {
 
     @Override
     protected EntityType<? extends Entity> getEntityType() {
-        return EntityType.HORSE;
+        return EntityTypes.HORSE;
     }
 
     public void setMaxHealth(float maxHealth) {

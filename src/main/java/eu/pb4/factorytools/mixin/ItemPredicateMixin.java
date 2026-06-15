@@ -4,7 +4,7 @@ import com.mojang.serialization.Codec;
 import eu.pb4.factorytools.api.util.ExtraItemPredicates;
 import eu.pb4.factorytools.impl.ExtendedItemPredicateCodec;
 import eu.pb4.factorytools.impl.ExtraItemPredicate;
-import net.minecraft.advancements.criterion.ItemPredicate;
+import net.minecraft.advancements.predicates.ItemPredicate;
 import net.minecraft.resources.Identifier;
 import net.minecraft.world.item.ItemInstance;
 import org.spongepowered.asm.mixin.*;

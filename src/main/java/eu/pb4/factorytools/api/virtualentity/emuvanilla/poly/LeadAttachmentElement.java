@@ -2,6 +2,7 @@ package eu.pb4.factorytools.api.virtualentity.emuvanilla.poly;
 
 import eu.pb4.polymer.virtualentity.api.data.EntityData;
 import eu.pb4.polymer.virtualentity.api.elements.GenericEntityElement;
+import net.minecraft.world.entity.EntityTypes;
 import org.apache.commons.lang3.function.Consumers;
 
 import java.util.List;
@@ -35,6 +36,6 @@ public class LeadAttachmentElement extends GenericEntityElement {
 
     @Override
     protected EntityType<? extends Entity> getEntityType() {
-        return EntityType.VEX;
+        return EntityTypes.VEX;
     }
 }

@@ -2,6 +2,7 @@ package eu.pb4.factorytools.api.block.model.generic;
 
 import com.google.common.collect.Lists;
 import com.google.gson.JsonParser;
+import com.mojang.datafixers.util.Pair;
 import com.mojang.serialization.JsonOps;
 import eu.pb4.factorytools.api.util.LazyItemStack;
 import eu.pb4.factorytools.api.util.ResourceUtils;
@@ -15,7 +16,6 @@ import net.minecraft.core.particles.ParticleTypes;
 import net.minecraft.resources.Identifier;
 import net.minecraft.util.Mth;
 import net.minecraft.util.RandomSource;
-import net.minecraft.util.Tuple;
 import net.minecraft.util.Util;
 import net.minecraft.util.random.Weighted;
 import net.minecraft.util.random.WeightedList;
@@ -66,15 +66,15 @@ public class BlockStateModelManager {
             var modelDef = decoded.getOrThrow().getFirst();
 
             if (modelDef.variants().isPresent()) {
-                var list = new ArrayList<Tuple<BlockStatePredicate, List<ModelData>>>();
+                var list = new ArrayList<Pair<BlockStatePredicate, List<ModelData>>>();
                 parseVariants(block, modelDef.variants().get(), list, modelGetter);
 
                 for (var pair : list) {
                     for (var state : block.getStateDefinition().getPossibleStates()) {
-                        if (pair.getA().test(state)) {
-                            MAP.put(state, List.of(ModelGetter.of(pair.getB())));
-                            if (!pair.getB().isEmpty()) {
-                                PARTICLE.put(state, pair.getB().getFirst().lazyStack.derivative(s -> new ItemParticleOption(ParticleTypes.ITEM, new ItemStackTemplate(s.typeHolder(), s.count(), s.getComponentsPatch()))));
+                        if (pair.getFirst().test(state)) {
+                            MAP.put(state, List.of(ModelGetter.of(pair.getSecond())));
+                            if (!pair.getSecond().isEmpty()) {
+                                PARTICLE.put(state, pair.getSecond().getFirst().lazyStack.derivative(s -> new ItemParticleOption(ParticleTypes.ITEM, new ItemStackTemplate(s.typeHolder(), s.count(), s.getComponentsPatch()))));
                             }
                         }
                     }
@@ -82,17 +82,17 @@ public class BlockStateModelManager {
             }
 
             if (modelDef.multipart().isPresent()) {
-                var list = new ArrayList<Tuple<Predicate<BlockState>, List<ModelData>>>();
+                var list = new ArrayList<Pair<Predicate<BlockState>, List<ModelData>>>();
                 parseMultipart(block, modelDef.multipart().get(), list, modelGetter);
 
                 for (var pair : list) {
                     for (var state : block.getStateDefinition().getPossibleStates()) {
-                        if (pair.getA().test(state)) {
+                        if (pair.getFirst().test(state)) {
                             var objects = new ArrayList<ModelGetter>();
                             if (MAP.containsKey(state)) {
                                 objects.addAll(MAP.get(state));
                             }
-                            objects.add(ModelGetter.of(pair.getB()));
+                            objects.add(ModelGetter.of(pair.getSecond()));
                             MAP.put(state, objects);
                             if (!objects.isEmpty() && !PARTICLE.containsKey(state)) {
                                 PARTICLE.put(state, objects.getFirst().getModel(rand).lazyStack.derivative(s -> new ItemParticleOption(ParticleTypes.ITEM, new ItemStackTemplate(s.typeHolder(), s.count(), s.getComponentsPatch()))));
@@ -106,7 +106,7 @@ public class BlockStateModelManager {
         }
     }
 
-    private static void parseMultipart(Block block, List<StateMultiPartDefinition> multiPartDefinition, ArrayList<Tuple<Predicate<BlockState>, List<ModelData>>> list, Function<Identifier, LazyItemStack> modelGetter) {
+    private static void parseMultipart(Block block, List<StateMultiPartDefinition> multiPartDefinition, ArrayList<Pair<Predicate<BlockState>, List<ModelData>>> list, Function<Identifier, LazyItemStack> modelGetter) {
         for (var part : multiPartDefinition) {
             Predicate<BlockState> preds;
 
@@ -118,7 +118,7 @@ public class BlockStateModelManager {
             }
 
             var modelData = parseBaseVariants(part.apply(), modelGetter);
-            list.add(new Tuple<>(preds, modelData));
+            list.add(new Pair<>(preds, modelData));
         }
     }
 
@@ -202,10 +202,10 @@ public class BlockStateModelManager {
         return term.negated() ? value -> !value.equals(parsedValue) : value -> value.equals(parsedValue);
     }
 
-    private static void parseVariants(Block block, Map<String, List<StateModelVariant>> modelDef, ArrayList<Tuple<BlockStatePredicate, List<ModelData>>> list, Function<Identifier, LazyItemStack> modelGetter) {
+    private static void parseVariants(Block block, Map<String, List<StateModelVariant>> modelDef, ArrayList<Pair<BlockStatePredicate, List<ModelData>>> list, Function<Identifier, LazyItemStack> modelGetter) {
         parseVariants(block, modelDef, (a, b) -> {
             var modelData = parseBaseVariants(b, modelGetter);
-            list.add(new Tuple<>(a, modelData));
+            list.add(new Pair<>(a, modelData));
         });
     }
 
