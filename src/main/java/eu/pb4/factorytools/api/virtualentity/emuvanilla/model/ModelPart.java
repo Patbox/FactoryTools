@@ -34,21 +34,27 @@ public final class ModelPart {
     }
 
     public void render(Matrix4fStack matrices, CubeConsumer vertices) {
-        if (this.visible) {
+        render(matrices, vertices, true);
+    }
+
+    private void render(Matrix4fStack matrices, CubeConsumer vertices, boolean parentVisible) {
+        if (this.visible && parentVisible) {
             if (!this.cubes.isEmpty() || !this.children.isEmpty()) {
                 matrices.pushMatrix();
                 this.translateAndRotate(matrices);
                 vertices.consume(this, matrices, this.skipDraw);
 
                 for (var child : this.children.values()) {
-                    child.render(matrices, vertices);
+                    child.render(matrices, vertices, true);
                 }
 
                 matrices.popMatrix();
             }
         } else {
             vertices.consume(this, matrices, true);
-            this.children.forEach((a, part) -> vertices.consume(part, matrices, true));
+            for (var child : this.children.values()) {
+                child.render(matrices, vertices, false);
+            }
         }
     }
     public void forEachCuboid(Consumer<ModelPart.Cube> consumer) {
