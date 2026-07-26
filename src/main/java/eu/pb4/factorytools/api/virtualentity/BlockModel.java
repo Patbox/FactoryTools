@@ -10,6 +10,7 @@ import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.level.block.state.BlockState;
 import org.jetbrains.annotations.Nullable;
 import org.joml.Matrix4f;
+import org.joml.Matrix4fStack;
 
 /**
  * You should expect this element to move with pistones and falling blocks!
@@ -18,10 +19,14 @@ public class BlockModel extends ElementHolder {
     private static int startTick = 0;
     private int updateTick = (startTick++) % 20;
 
-    private static final SharedMatrix4f mat = new SharedMatrix4f();
+    private static final SharedMatrix4f mat = new SharedMatrix4f(16);
 
     public static Matrix4f mat() {
         return mat.main();
+    }
+
+    public static Matrix4fStack matStack() {
+        return mat.mainStack();
     }
 
     public final int getTick() {
