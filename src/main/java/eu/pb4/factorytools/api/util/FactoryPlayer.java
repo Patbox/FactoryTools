@@ -6,6 +6,7 @@ import net.fabricmc.fabric.api.entity.FakePlayer;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.NonNullList;
 import net.minecraft.server.level.ServerLevel;
+import net.minecraft.util.Prediction;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.entity.EntityEquipment;
 import net.minecraft.world.entity.EquipmentSlot;
@@ -101,7 +102,7 @@ public class FactoryPlayer extends FakePlayer {
         }
 
         @Override
-        public void placeItemBackInInventory(ItemStack stack, boolean notifiesClient) {
+        public void placeItemBackInInventory(ItemStack stack, boolean notifiesClient, Prediction prediction) {
             FactoryPlayer.this.level().addFreshEntity(new ItemEntity(FactoryPlayer.this.level(), FactoryPlayer.this.getX(), FactoryPlayer.this.getY(), FactoryPlayer.this.getZ(), stack));
         }
 

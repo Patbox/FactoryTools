@@ -85,7 +85,7 @@ public class VirtualDestroyStage extends ElementHolder {
 
         var model =  """
                 {
-                  "parent": "minecraft:block/cube_all",
+                  "parent": "factorytools:block/destroy_stage_base",
                   "textures": {
                     "all": "minecraft:block/destroy_stage_|ID|"
                   }

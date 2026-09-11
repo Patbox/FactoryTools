@@ -7,7 +7,7 @@ import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.sounds.SoundSource;
 import net.minecraft.util.Mth;
-import net.minecraft.world.entity.player.Player;
+import net.minecraft.world.entity.Entity;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.state.BlockState;
@@ -18,17 +18,17 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 
 @Mixin(value = Block.class, priority = 600)
 public class BlockMixin {
-    @Inject(method = "spawnDestroyParticles", at = @At("HEAD"), cancellable = true)
-    private void customSpawnBreakParticles(Level world, Player player, BlockPos pos, BlockState state, CallbackInfo ci) {
+    @Inject(method = "spawnDestroyByEntityParticles", at = @At("HEAD"), cancellable = true)
+    private void customSpawnBreakParticles(Level level, Entity entity, BlockPos pos, BlockState state, CallbackInfo ci) {
         if (PolymerSyncedObject.getSyncedObject(BuiltInRegistries.BLOCK, state.getBlock()) instanceof CustomBreakingParticleBlock customBreakingParticleBlock) {
-            if (world.isClientSide()) {
+            if (level.isClientSide()) {
                 return;
             }
             var group = state.getSoundType();
-            world.playSound(null, pos, group.getBreakSound(), SoundSource.BLOCKS, (group.getVolume() + 1.0f) / 2.0f, group.getPitch() * 0.8f);
+            level.playSound(null, pos, group.getBreakSound(), SoundSource.BLOCKS, (group.getVolume() + 1.0f) / 2.0f, group.getPitch() * 0.8f);
             var particle = customBreakingParticleBlock.getBreakingParticle(state);
             if (!state.isAir() && state.shouldSpawnTerrainParticles()) {
-                var shape = state.getShape(world, pos);
+                var shape = state.getShape(level, pos);
                 shape.forAllBoxes((minX, minY, minZ, maxX, maxY, maxZ) -> {
                     double d = Math.min(1.0, maxX - minX);
                     double e = Math.min(1.0, maxY - minY);
@@ -57,7 +57,7 @@ public class BlockMixin {
                                 velY = velY / o * p * 0.4000000059604645 + 0.10000000149011612;
                                 velZ = velZ / o * p * 0.4000000059604645;
                                 
-                                ((ServerLevel) world).sendParticles(particle, (double)pos.getX() + x, (double)pos.getY() + y, (double)pos.getZ() + z, 0,
+                                ((ServerLevel) level).sendParticles(particle, (double)pos.getX() + x, (double)pos.getY() + y, (double)pos.getZ() + z, 0,
                                         velX, velY, velZ, 1);
                             }
                         }

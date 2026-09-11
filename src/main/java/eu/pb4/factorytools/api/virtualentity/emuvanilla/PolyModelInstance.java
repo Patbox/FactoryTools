@@ -11,6 +11,7 @@ import eu.pb4.polymer.resourcepack.extras.api.format.atlas.AtlasAsset;
 import eu.pb4.polymer.resourcepack.extras.api.format.model.ModelAsset;
 import eu.pb4.polymer.resourcepack.extras.api.format.model.ModelElement;
 import eu.pb4.polymer.resourcepack.extras.api.format.model.ModelTransformation;
+import net.minecraft.world.item.component.DyedItemColor;
 import net.minecraft.world.level.block.Rotation;
 import org.jetbrains.annotations.Nullable;
 import org.joml.Vector3f;
@@ -25,7 +26,6 @@ import net.minecraft.core.component.DataComponents;
 import net.minecraft.resources.Identifier;
 import net.minecraft.world.item.ItemDisplayContext;
 import net.minecraft.world.item.ItemStack;
-import net.minecraft.world.item.component.MapItemColor;
 import net.minecraft.world.phys.Vec3;
 
 public record PolyModelInstance<T extends EntityModel<?>>(T model, LayerDefinition data, Identifier texture,
@@ -51,7 +51,7 @@ public record PolyModelInstance<T extends EntityModel<?>>(T model, LayerDefiniti
             map.put(part, stack);
             damagedMap.put(part, stack.derivative(s -> {
                 s = s.copy();
-                s.set(DataComponents.MAP_COLOR, new MapItemColor(0xff7e7e));
+                s.set(DataComponents.DYED_COLOR, new DyedItemColor(0xff7e7e));
                 return s;
             }));
         }

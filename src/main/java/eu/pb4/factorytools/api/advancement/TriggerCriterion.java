@@ -4,10 +4,11 @@ import com.mojang.serialization.Codec;
 import com.mojang.serialization.codecs.RecordCodecBuilder;
 import java.util.Optional;
 import net.minecraft.advancements.triggers.Criterion;
-import net.minecraft.advancements.predicates.ContextAwarePredicate;
 import net.minecraft.advancements.triggers.SimpleCriterionTrigger;
+import net.minecraft.core.Holder;
 import net.minecraft.resources.Identifier;
 import net.minecraft.server.level.ServerPlayer;
+import net.minecraft.world.level.storage.loot.predicates.LootItemCondition;
 
 public class TriggerCriterion extends SimpleCriterionTrigger<TriggerCriterion.Condition> {
     public static Criterion<?> of(Identifier id) {
@@ -27,8 +28,9 @@ public class TriggerCriterion extends SimpleCriterionTrigger<TriggerCriterion.Co
         public static final Codec<Condition> CODEC = RecordCodecBuilder.create(instance -> instance.group(
                 Identifier.CODEC.fieldOf("trigger").forGetter(Condition::identifier)
         ).apply(instance, Condition::new));
+
         @Override
-        public Optional<ContextAwarePredicate> player() {
+        public Optional<Holder<LootItemCondition>> player() {
             return Optional.empty();
         }
     }

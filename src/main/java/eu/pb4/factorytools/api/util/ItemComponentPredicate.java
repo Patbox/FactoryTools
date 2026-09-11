@@ -19,9 +19,9 @@ public record ItemComponentPredicate(DataComponentExactPredicate components, Map
         @SuppressWarnings("unchecked")
         @Override
         public <T> RecordBuilder<T> encode(ItemComponentPredicate input, DynamicOps<T> ops, RecordBuilder<T> prefix) {
-            for (var x : input.components.asPatch().entrySet()) {
-                prefix = prefix.add(Objects.requireNonNull(BuiltInRegistries.DATA_COMPONENT_TYPE.getKey(x.getKey())).toString(),
-                        ((Codec<Object>) (Object) x.getKey().codecOrThrow()).encodeStart(ops, x.getValue()).getOrThrow());
+            for (var x : input.components.asPatch().split().added()) {
+                prefix = prefix.add(Objects.requireNonNull(BuiltInRegistries.DATA_COMPONENT_TYPE.getKey(x.type())).toString(),
+                        ((Codec<Object>) (Object) x.type().codecOrThrow()).encodeStart(ops, x.value()).getOrThrow());
             }
 
             for (var x : input.subPredicates.entrySet()) {

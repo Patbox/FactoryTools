@@ -62,9 +62,9 @@ public class AnimationUtils {
     }
 
     public static <T extends LivingEntity> void animateZombieArms(ModelPart modelPart, ModelPart modelPart2, boolean bl, T undeadRenderState) {
-        boolean bl2 = undeadRenderState.swingingArm != null && undeadRenderState.getItemInHand(undeadRenderState.swingingArm).getOrDefault(DataComponents.SWING_ANIMATION, SwingAnimation.DEFAULT).type() != SwingAnimationType.STAB;
+        boolean bl2 = undeadRenderState.getCurrentSwing() != null && undeadRenderState.getCurrentSwing().animation().type() != SwingAnimationType.STAB;
         if (bl2) {
-            float f = undeadRenderState.swingTime;
+            float f = undeadRenderState.getCurrentSwing().durationTicks();
             float g = -(float) Math.PI / (bl ? 1.5F : 2.25F);
             float h = Mth.sin(f * (float) Math.PI);
             float i = Mth.sin((1.0F - (1.0F - f) * (1.0F - f)) * (float) Math.PI);

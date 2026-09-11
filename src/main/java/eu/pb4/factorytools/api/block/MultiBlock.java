@@ -36,7 +36,7 @@ public abstract class MultiBlock extends Block implements PolymerBlock {
     private final int centerBlockZ;
 
     public MultiBlock(int x, int y, int z, Properties settings) {
-        this(x - 1, y - 1, z - 1, hackPass(x - 1, y - 1, z - 1), settings.pushReaction(PushReaction.BLOCK));
+        this(x - 1, y - 1, z - 1, hackPass(x - 1, y - 1, z - 1), settings.pushReaction(PushReaction.IMMOVEABLE));
     }
 
     private MultiBlock(int x, int y, int z, IntegerProperty[] hackPass, Properties settings) {
