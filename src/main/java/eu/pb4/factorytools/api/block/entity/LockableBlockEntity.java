@@ -10,6 +10,7 @@ import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.sounds.SoundEvents;
 import net.minecraft.sounds.SoundSource;
 import net.minecraft.world.LockCode;
+import net.minecraft.world.Nameable;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.level.Level;
@@ -19,8 +20,9 @@ import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.storage.ValueInput;
 import net.minecraft.world.level.storage.ValueOutput;
 import org.jetbrains.annotations.Nullable;
+import org.jspecify.annotations.NonNull;
 
-public abstract class LockableBlockEntity extends BlockEntity {
+public abstract class LockableBlockEntity extends BlockEntity implements Nameable {
     private LockCode lock;
     @Nullable
     private Component customName;
@@ -71,14 +73,17 @@ public abstract class LockableBlockEntity extends BlockEntity {
 
     private void writeDataMixin(ValueOutput view) {}
 
-    public Component getName() {
+    @Override
+    public @NonNull Component getName() {
         return this.customName != null ? this.customName : this.getContainerName();
     }
 
-    public Component getDisplayName() {
+    @Override
+    public @NonNull Component getDisplayName() {
         return this.getName();
     }
 
+    @Override
     @Nullable
     public Component getCustomName() {
         return this.customName;
